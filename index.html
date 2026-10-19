@@ -5,120 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>충북 지질 원격답사 플랫폼</title>
     <style>
-        /* 기본 디자인 설정 */
-        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
-        header { background-color: #2c3e50; color: white; text-align: center; padding: 2rem 1rem; }
-        header h1 { margin: 0 0 10px 0; }
-        main { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
-        section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        /* 웹사이트 전체 기본 배경 및 폰트 설정 */
+        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #e9ecef; color: #333; }
+        header { background-color: #1a252f; color: white; text-align: center; padding: 2.5rem 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { margin: 0 0 10px 0; font-size: 28px; }
+        main { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        section { background: white; border-radius: 12px; padding: 25px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 12px; margin-top: 0; }
         
-        /* 반응형 이미지 및 갤러리 */
-        img { width: 100%; height: auto; border-radius: 4px; margin-top: 10px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-        .gallery img { cursor: pointer; transition: transform 0.2s; }
-        .gallery img:hover { transform: scale(1.02); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-
-        /* 진천 농다리 이미지맵 관련 디자인 */
+        /* 지도(배경 이미지)를 담는 영역 */
+        .map-wrapper {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+            background-color: #fafafa;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
         .image-map-container {
             position: relative;
-            display: inline-block;
+            display: block;
             width: 100%;
         }
-        /* 클릭 가능한 핫스팟(투명 버튼) 디자인 */
+        /* 지도로 쓰일 배경 사진 */
+        .image-map-container img.bg-map {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* 📍 구글맵 스타일의 작고 깔끔한 핀(마커) 디자인 */
         .hotspot {
             position: absolute;
-            background-color: rgba(255, 255, 0, 0.3); /* 연한 노란색 반투명 */
-            border: 2px solid yellow;
+            width: 20px; /* 핀의 크기 (아주 작게 줄임) */
+            height: 20px;
+            background-color: #ea4335; /* 구글맵 빨간색 */
+            border: 3px solid white;
+            border-radius: 50%;
             cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.2s;
+            transform: translate(-50%, -50%); /* 정확한 좌표에 중심을 맞춤 */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+            z-index: 10;
         }
-        .hotspot:hover {
-            background-color: rgba(255, 255, 0, 0.6); /* 마우스 올리면 진해짐 */
-        }
-        /* 마우스 올렸을 때 나타나는 툴팁 글씨 */
-        .hotspot::after {
-            content: attr(data-title);
+        /* 핀 중앙의 작은 점 */
+        .hotspot::before {
+            content: '';
             position: absolute;
-            bottom: 110%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px; height: 6px;
+            background-color: #7b1fa2;
+            border-radius: 50%;
+        }
+        /* 핀 아래쪽의 뾰족한 꼬리 부분 */
+        .hotspot::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 8px 0;
+            border-style: solid;
+            border-color: #ea4335 transparent transparent transparent;
+            z-index: -1;
+        }
+        
+        /* 마우스 올렸을 때 핀이 살짝 떠오르는 효과 */
+        .hotspot:hover {
+            transform: translate(-50%, -60%) scale(1.15); 
+            background-color: #c0392b;
+        }
+        
+        /* 핀 위에 뜨는 이름(툴팁) 말풍선 */
+        .hotspot .tooltip {
+            position: absolute;
+            bottom: 160%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 14px;
+            background-color: white;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 0.2s;
             pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: opacity 0.2s;
         }
-        .hotspot:hover::after { opacity: 1; }
+        .hotspot:hover .tooltip { opacity: 1; }
         
-        /* 팝업(모달) 창 디자인 */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); }
-        .modal-content { margin: auto; display: block; width: 80%; max-width: 1000px; position: relative; top: 50%; transform: translateY(-50%); }
-        .close { position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
+        /* 클릭 시 화면 가득 사진이 뜨는 팝업(모달) 디자인 */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(5px); }
+        .modal-content { margin: auto; display: block; max-width: 90%; max-height: 90vh; position: relative; top: 50%; transform: translateY(-50%); border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .close { position: absolute; top: 20px; right: 35px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; transition: color 0.2s; }
+        .close:hover { color: #e74c3c; }
     </style>
 </head>
 <body>
 
     <header>
         <h1>📍 충북 지질 원격답사 플랫폼</h1>
-        <p>청석굴 및 진천 농다리 일대의 지형과 지질 구조 관찰</p>
+        <p>지도 핀을 클릭하여 상세 지질 구조를 관찰해 보세요.</p>
     </header>
 
     <main>
-        <!-- 첫 번째 답사지: 진천 농다리 -->
+        <!-- 첫 번째 지도: 진천 농다리 -->
         <section>
-            <h2>1. 진천 농다리 지질 구조 관찰 (Interactive)</h2>
-            <p>하천 건너편에 길게 늘어선 절벽(하식애)의 모습입니다. <strong>사진 위에 표시된 노란색 영역(핫스팟)을 클릭</strong>하면 해당 부위의 확대 사진을 볼 수 있습니다. 층리가 휘어진 모습과 단층선을 찾아보세요.</p>
+            <h2>1. 진천 농다리 지질 구조 관찰</h2>
+            <p>전경 사진(지도) 위에 표시된 <strong>빨간색 핀(마커)을 클릭</strong>하시면 해당 부위의 확대 사진을 볼 수 있습니다.</p>
             
-            <div class="image-map-container">
-                <img src="nongdari_background.jpg" alt="진천 농다리 전경">
-                
-                <!-- 
-                핫스팟 위치 설정 (top, left, width, height는 비율(%)로 설정) 
-                데이터(onclick)에는 보여줄 상세 이미지 주소를 넣습니다.
-                -->
-                <div class="hotspot" style="top: 30%; left: 15%; width: 20%; height: 50%;" 
-                     data-title="왼쪽 암벽 확대" onclick="openModal('nongdari_1.jpg')"></div>
-                     
-                <div class="hotspot" style="top: 25%; left: 40%; width: 25%; height: 60%;" 
-                     data-title="중앙 암벽 확대" onclick="openModal('nongdari_2.jpg')"></div>
-                     
-                <div class="hotspot" style="top: 20%; left: 70%; width: 20%; height: 70%;" 
-                     data-title="오른쪽 암벽 확대" onclick="openModal('nongdari_3.jpg')"></div>
+            <div class="map-wrapper">
+                <div class="image-map-container">
+                    <!-- 배경 지도 이미지 -->
+                    <img src="nongdari_background.jpg" alt="진천 농다리 전경" class="bg-map">
+                    
+                    <!-- 📍 작아진 핀 1 (왼쪽) -->
+                    <div class="hotspot" style="top: 55%; left: 25%;" onclick="openModal('nongdari_1.jpg')">
+                        <span class="tooltip">관찰 포인트 1 (왼쪽)</span>
+                    </div>
+                         
+                    <!-- 📍 작아진 핀 2 (중앙) -->
+                    <div class="hotspot" style="top: 55%; left: 52%;" onclick="openModal('nongdari_2.jpg')">
+                        <span class="tooltip">관찰 포인트 2 (중앙)</span>
+                    </div>
+                         
+                    <!-- 📍 작아진 핀 3 (오른쪽) -->
+                    <div class="hotspot" style="top: 55%; left: 80%;" onclick="openModal('nongdari_3.jpg')">
+                        <span class="tooltip">관찰 포인트 3 (오른쪽)</span>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- 두 번째 답사지: 청석굴 -->
+        <!-- 두 번째 지도: 청석굴 -->
         <section>
             <h2>2. 청주 청석굴 지형 및 지질</h2>
-            <p>청석굴 주변의 지형 전경과 절벽을 구성하는 암석의 뚜렷한 줄무늬(층리/엽리)를 관찰해 봅시다.</p>
+            <p>암벽을 따라 표시된 <strong>빨간색 핀(마커)을 클릭</strong>하여 암석의 줄무늬(층리/엽리)와 휘어진 습곡 구조를 찾아보세요.</p>
             
-            <h3>청석굴 전경</h3>
-            <img src="chungseokgul_background.jpg" alt="청석굴 전경 파노라마">
-            
-            <h3>암벽 세부 관찰 (클릭하여 확대)</h3>
-            <div class="gallery">
-                <img src="chungseokgul_1.jpg" alt="청석굴 지질 1" onclick="openModal('chungseokgul_1.jpg')">
-                <img src="chungseokgul_2.jpg" alt="청석굴 지질 2" onclick="openModal('chungseokgul_2.jpg')">
-                <img src="chungseokgul_3.jpg" alt="청석굴 지질 3" onclick="openModal('chungseokgul_3.jpg')">
-                <img src="chungseokgul_4.jpg" alt="청석굴 지질 4" onclick="openModal('chungseokgul_4.jpg')">
+            <div class="map-wrapper">
+                <div class="image-map-container">
+                    <!-- 배경 지도 이미지 -->
+                    <img src="chungseokgul_background.jpg" alt="청석굴 전경" class="bg-map">
+                    
+                    <!-- 📍 청석굴 핀 1~4 (암벽 위치를 대략적으로 추정하여 배치) -->
+                    <div class="hotspot" style="top: 45%; left: 23%;" onclick="openModal('chungseokgul_1.jpg')">
+                        <span class="tooltip">청석굴 암벽 1</span>
+                    </div>
+                    <div class="hotspot" style="top: 50%; left: 26%;" onclick="openModal('chungseokgul_2.jpg')">
+                        <span class="tooltip">청석굴 암벽 2</span>
+                    </div>
+                    <div class="hotspot" style="top: 55%; left: 29%;" onclick="openModal('chungseokgul_3.jpg')">
+                        <span class="tooltip">청석굴 암벽 3</span>
+                    </div>
+                    <div class="hotspot" style="top: 60%; left: 32%;" onclick="openModal('chungseokgul_4.jpg')">
+                        <span class="tooltip">청석굴 암벽 4</span>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- 사진 확대 팝업(모달) 영역 -->
+    <!-- 사진 확대 팝업(모달) 창 -->
     <div id="imageModal" class="modal" onclick="closeModal()">
         <span class="close">&times;</span>
         <img class="modal-content" id="modalImg">
     </div>
 
     <script>
-        /* 사진 클릭 시 확대 창 띄우는 기능 */
+        /* 사진 클릭 시 팝업 띄우는 스크립트 */
         var modal = document.getElementById("imageModal");
         var modalImg = document.getElementById("modalImg");
 
