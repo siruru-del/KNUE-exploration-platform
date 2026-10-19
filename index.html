@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>충북 지질 원격답사 플랫폼</title>
+    <style>
+        /* 기본 디자인 설정 */
+        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
+        header { background-color: #2c3e50; color: white; text-align: center; padding: 2rem 1rem; }
+        header h1 { margin: 0 0 10px 0; }
+        main { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        /* 반응형 이미지 및 갤러리 */
+        img { width: 100%; height: auto; border-radius: 4px; margin-top: 10px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .gallery img { cursor: pointer; transition: transform 0.2s; }
+        .gallery img:hover { transform: scale(1.02); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* 진천 농다리 이미지맵 관련 디자인 */
+        .image-map-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        /* 클릭 가능한 핫스팟(투명 버튼) 디자인 */
+        .hotspot {
+            position: absolute;
+            background-color: rgba(255, 255, 0, 0.3); /* 연한 노란색 반투명 */
+            border: 2px solid yellow;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .hotspot:hover {
+            background-color: rgba(255, 255, 0, 0.6); /* 마우스 올리면 진해짐 */
+        }
+        /* 마우스 올렸을 때 나타나는 툴팁 글씨 */
+        .hotspot::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .hotspot:hover::after { opacity: 1; }
+        
+        /* 팝업(모달) 창 디자인 */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); }
+        .modal-content { margin: auto; display: block; width: 80%; max-width: 1000px; position: relative; top: 50%; transform: translateY(-50%); }
+        .close { position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📍 충북 지질 원격답사 플랫폼</h1>
+        <p>청석굴 및 진천 농다리 일대의 지형과 지질 구조 관찰</p>
+    </header>
+
+    <main>
+        <!-- 첫 번째 답사지: 진천 농다리 -->
+        <section>
+            <h2>1. 진천 농다리 지질 구조 관찰 (Interactive)</h2>
+            <p>하천 건너편에 길게 늘어선 절벽(하식애)의 모습입니다. <strong>사진 위에 표시된 노란색 영역(핫스팟)을 클릭</strong>하면 해당 부위의 확대 사진을 볼 수 있습니다. 층리가 휘어진 모습과 단층선을 찾아보세요.</p>
+            
+            <div class="image-map-container">
+                <img src="nongdari_background.jpg" alt="진천 농다리 전경">
+                
+                <!-- 
+                핫스팟 위치 설정 (top, left, width, height는 비율(%)로 설정) 
+                데이터(onclick)에는 보여줄 상세 이미지 주소를 넣습니다.
+                -->
+                <div class="hotspot" style="top: 30%; left: 15%; width: 20%; height: 50%;" 
+                     data-title="왼쪽 암벽 확대" onclick="openModal('nongdari_1.jpg')"></div>
+                     
+                <div class="hotspot" style="top: 25%; left: 40%; width: 25%; height: 60%;" 
+                     data-title="중앙 암벽 확대" onclick="openModal('nongdari_2.jpg')"></div>
+                     
+                <div class="hotspot" style="top: 20%; left: 70%; width: 20%; height: 70%;" 
+                     data-title="오른쪽 암벽 확대" onclick="openModal('nongdari_3.jpg')"></div>
+            </div>
+        </section>
+
+        <!-- 두 번째 답사지: 청석굴 -->
+        <section>
+            <h2>2. 청주 청석굴 지형 및 지질</h2>
+            <p>청석굴 주변의 지형 전경과 절벽을 구성하는 암석의 뚜렷한 줄무늬(층리/엽리)를 관찰해 봅시다.</p>
+            
+            <h3>청석굴 전경</h3>
+            <img src="chungseokgul_background.jpg" alt="청석굴 전경 파노라마">
+            
+            <h3>암벽 세부 관찰 (클릭하여 확대)</h3>
+            <div class="gallery">
+                <img src="chungseokgul_1.jpg" alt="청석굴 지질 1" onclick="openModal('chungseokgul_1.jpg')">
+                <img src="chungseokgul_2.jpg" alt="청석굴 지질 2" onclick="openModal('chungseokgul_2.jpg')">
+                <img src="chungseokgul_3.jpg" alt="청석굴 지질 3" onclick="openModal('chungseokgul_3.jpg')">
+                <img src="chungseokgul_4.jpg" alt="청석굴 지질 4" onclick="openModal('chungseokgul_4.jpg')">
+            </div>
+        </section>
+    </main>
+
+    <!-- 사진 확대 팝업(모달) 영역 -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImg">
+    </div>
+
+    <script>
+        /* 사진 클릭 시 확대 창 띄우는 기능 */
+        var modal = document.getElementById("imageModal");
+        var modalImg = document.getElementById("modalImg");
+
+        function openModal(imageSrc) {
+            modal.style.display = "block";
+            modalImg.src = imageSrc;
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
