@@ -85,11 +85,10 @@
         /* -------------------------------------
            Pannellum 기본 UI 조작 (툴바 위치 이동)
            ------------------------------------- */
-        /* Pannellum 기본 조작 툴바(+,-, 전체화면)를 왼쪽 위에서 왼쪽 아래로 강제 이동 */
         .pnlm-controls-container {
-            top: auto !important; /* 위쪽 여백 무시 */
-            bottom: 20px !important; /* 아래에서 20px 띄우기 */
-            left: 20px !important; /* 왼쪽에서 20px 띄우기 */
+            top: auto !important; 
+            bottom: 20px !important; 
+            left: 20px !important; 
         }
         
         /* -------------------------------------
@@ -165,27 +164,29 @@
             "scenes": {
                 "nongdari": {
                     "type": "equirectangular",
-                    "panorama": "nongdari_background.jpg",
+                    /* nongdari 폴더 경로로 변경됨 */
+                    "panorama": "nongdari/nongdari_background.jpg", 
                     "haov": 240, "vaov": 70, "minYaw": -120, "maxYaw": 120, "minPitch": -30, "maxPitch": 30,    
                     "minHfov": 30, "maxHfov": 100, "hfov": 80, "pitch": 0, "yaw": 0,
                     
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -30, "type": "info", "text": "왼쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari_1.jpg" },
-                        { "pitch": 5, "yaw": 0, "type": "info", "text": "중앙 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari_2.jpg" },
-                        { "pitch": 5, "yaw": 30, "type": "info", "text": "오른쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari_3.jpg" }
+                        { "pitch": 5, "yaw": -30, "type": "info", "text": "왼쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_1.jpg" },
+                        { "pitch": 5, "yaw": 0, "type": "info", "text": "중앙 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_2.jpg" },
+                        { "pitch": 5, "yaw": 30, "type": "info", "text": "오른쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_3.jpg" }
                     ]
                 },
                 "chungseokgul": {
                     "type": "equirectangular",
-                    "panorama": "chungseokgul_background.jpg",
+                    /* chungseokgul 폴더 경로로 변경됨 */
+                    "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "haov": 240, "vaov": 70, "minYaw": -120, "maxYaw": 120, "minPitch": -30, "maxPitch": 30,
                     "minHfov": 30, "maxHfov": 100, "hfov": 80, "pitch": 0, "yaw": 0,
 
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -45, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul_1.jpg" },
-                        { "pitch": 10, "yaw": -25, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul_2.jpg" },
-                        { "pitch": 15, "yaw": 0, "type": "info", "text": "청석굴 암벽 3", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul_3.jpg" },
-                        { "pitch": 20, "yaw": 25, "type": "info", "text": "청석굴 암벽 4", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul_4.jpg" }
+                        { "pitch": 5, "yaw": -45, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_1.jpg" },
+                        { "pitch": 10, "yaw": -25, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_2.jpg" },
+                        { "pitch": 15, "yaw": 0, "type": "info", "text": "청석굴 암벽 3", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_3.jpg" },
+                        { "pitch": 20, "yaw": 25, "type": "info", "text": "청석굴 암벽 4", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_4.jpg" }
                     ]
                 }
             }
