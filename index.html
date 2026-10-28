@@ -5,148 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>충북 지질 원격답사 플랫폼</title>
     
-    <!-- 360도 파노라마 구현을 위한 Pannellum 라이브러리 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     
     <style>
-        /* 화면을 파노라마로 꽉 채우기 */
         body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
-        
         #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
 
-        /* -------------------------------------
-           버튼 및 수납형 사이드바 디자인
-           ------------------------------------- */
-        
-        /* 📍 메뉴 열기/닫기 토글 버튼 (왼쪽 위) */
+        /* 📍 메뉴 열기/닫기 토글 버튼 */
         #menu-toggle-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 30;
-            background-color: rgba(20, 20, 20, 0.85);
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: background-color 0.3s, transform 0.2s;
-            backdrop-filter: blur(5px);
+            position: absolute; top: 20px; left: 20px; z-index: 30;
+            background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
         }
         #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
 
         /* 플로팅 사이드바 */
         #sidebar {
-            position: absolute;
-            top: 70px;
-            left: 20px;
-            width: 260px;
-            background-color: rgba(25, 25, 25, 0.85);
-            color: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            z-index: 20;
-            backdrop-filter: blur(5px);
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
-            transform-origin: top left;
+            position: absolute; top: 70px; left: 20px; width: 260px;
+            background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 20; backdrop-filter: blur(5px);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease; transform-origin: top left;
         }
+        #sidebar.collapsed { transform: translateX(-120%); opacity: 0; pointer-events: none; }
+        #sidebar h2 { text-align: center; padding: 20px 15px 15px; margin: 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-        #sidebar.collapsed {
-            transform: translateX(-120%);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #sidebar h2 {
-            text-align: center;
-            padding: 20px 15px 15px;
-            margin: 0;
-            font-size: 18px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .menu-item {
-            padding: 18px 20px;
-            margin: 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            font-weight: bold;
-        }
+        .menu-item { padding: 18px 20px; margin: 8px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 16px; font-weight: bold; }
         .menu-item:hover { background-color: rgba(255, 255, 255, 0.1); }
         .menu-item.active { background-color: #fff; color: #000; }
         .menu-item span { display: block; font-size: 12px; color: #aaa; margin-top: 6px; font-weight: normal; }
         .menu-item.active span { color: #555; }
 
-        /* -------------------------------------
-           Pannellum 기본 UI 조작 (툴바 위치 이동)
-           ------------------------------------- */
-        .pnlm-controls-container {
-            top: auto !important; 
-            bottom: 20px !important; 
-            left: 20px !important; 
-        }
+        .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
         
         /* -------------------------------------
-           사진 확대 팝업(모달) 디자인
+           사진 + 텍스트 분할 팝업(모달) 디자인
            ------------------------------------- */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
             background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
         }
-        .modal-content {
-            margin: auto; display: block; max-width: 90%; max-height: 90vh; position: relative; top: 50%; transform: translateY(-50%);
-            border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        .modal-wrapper {
+            display: flex; margin: auto; max-width: 80%; max-height: 80vh; position: relative; top: 50%; transform: translateY(-50%);
+            background-color: #222; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden;
         }
-        .close { position: absolute; top: 20px; right: 35px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; }
+        .modal-content { max-width: 60%; object-fit: contain; background: #000; }
+        .modal-text { width: 40%; padding: 30px; color: #fff; font-size: 16px; line-height: 1.6; overflow-y: auto; }
+        .close { position: absolute; top: 20px; right: 35px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; z-index: 1001; }
         .close:hover { color: #aaa; }
     </style>
 </head>
 <body>
 
-    <!-- 토글 버튼 -->
     <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
 
-    <!-- 플로팅 사이드바 -->
     <div id="sidebar" class="collapsed">
         <h2>🗺️ 어디로 이동할까요?</h2>
-        
-        <div class="menu-item active" onclick="changeScene('nongdari', this)">
+        <div class="menu-item active" onclick="changeScene('nongdari_0', this)">
             1. 진천 농다리
             <span>마우스로 드래그하여 주변 둘러보기</span>
         </div>
-        
-        <div class="menu-item" onclick="changeScene('chungseokgul', this)">
+        <div class="menu-item" onclick="changeScene('chungseokgul_0', this)">
             2. 청주 청석굴
             <span>절벽의 습곡과 층리 관찰</span>
         </div>
     </div>
 
-    <!-- 360도 파노라마 화면 -->
     <div id="panorama"></div>
 
     <!-- 사진 확대 팝업(모달) 창 -->
-    <div id="imageModal" class="modal" onclick="closeModal()">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modalImg">
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-wrapper">
+            <img class="modal-content" id="modalImg">
+            <div class="modal-text" id="modalDesc">여기에 설명이 표시됩니다.</div>
+        </div>
     </div>
 
     <script>
         function toggleSidebar() {
-            var sidebar = document.getElementById("sidebar");
-            sidebar.classList.toggle("collapsed");
+            document.getElementById("sidebar").classList.toggle("collapsed");
         }
 
         var modal = document.getElementById("imageModal");
         var modalImg = document.getElementById("modalImg");
+        var modalDesc = document.getElementById("modalDesc");
 
-        function showImagePopup(hotSpotDiv, imageSrc) {
+        // 팝업 열기 (이미지와 텍스트 동시 처리)
+        function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
-            modalImg.src = imageSrc;
+            modalImg.src = args.img;
+            modalDesc.innerHTML = args.desc;
         }
 
         function closeModal() {
@@ -155,38 +105,99 @@
 
         let viewer = pannellum.viewer('panorama', {
             "default": {
-                "firstScene": "nongdari", 
+                "firstScene": "nongdari_0", 
                 "sceneFadeDuration": 1000, 
                 "autoLoad": true,
                 "showZoomCtrl": true,
-                "mouseZoom": true
+                "mouseZoom": true,
+                "hotSpotDebug": true /* 🚀 F12 콘솔창에서 클릭한 곳의 좌표(Pitch, Yaw)를 띄워주는 기능 */
             },
             "scenes": {
-                "nongdari": {
+                /* ==========================================
+                   1. 진천 농다리 동선 (배경 5장 연결)
+                   ========================================== */
+                "nongdari_0": {
                     "type": "equirectangular",
-                    /* nongdari 폴더 경로로 변경됨 */
                     "panorama": "nongdari/nongdari_background.jpg", 
-                    "haov": 240, "vaov": 70, "minYaw": -120, "maxYaw": 120, "minPitch": -30, "maxPitch": 30,    
-                    "minHfov": 30, "maxHfov": 100, "hfov": 80, "pitch": 0, "yaw": 0,
-                    
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -30, "type": "info", "text": "왼쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_1.jpg" },
-                        { "pitch": 5, "yaw": 0, "type": "info", "text": "중앙 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_2.jpg" },
-                        { "pitch": 5, "yaw": 30, "type": "info", "text": "오른쪽 암벽 상세 보기", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "nongdari/nongdari_3.jpg" }
+                        { "pitch": 0, "yaw": 20, "type": "info", "text": "농다리 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>농다리 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_1" }
                     ]
                 },
-                "chungseokgul": {
+                "nongdari_1": {
                     "type": "equirectangular",
-                    /* chungseokgul 폴더 경로로 변경됨 */
-                    "panorama": "chungseokgul/chungseokgul_background.jpg", 
-                    "haov": 240, "vaov": 70, "minYaw": -120, "maxYaw": 120, "minPitch": -30, "maxPitch": 30,
-                    "minHfov": 30, "maxHfov": 100, "hfov": 80, "pitch": 0, "yaw": 0,
-
+                    "panorama": "nongdari/nongdari_background_1.jpg", 
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -45, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_1.jpg" },
-                        { "pitch": 10, "yaw": -25, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_2.jpg" },
-                        { "pitch": 15, "yaw": 0, "type": "info", "text": "청석굴 암벽 3", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_3.jpg" },
-                        { "pitch": 20, "yaw": 25, "type": "info", "text": "청석굴 암벽 4", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": "chungseokgul/chungseokgul_4.jpg" }
+                        { "pitch": 0, "yaw": 20, "type": "info", "text": "농다리 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>농다리 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_0" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_2" }
+                    ]
+                },
+                "nongdari_2": {
+                    "type": "equirectangular",
+                    "panorama": "nongdari/nongdari_background_2.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_1" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_3" }
+                    ]
+                },
+                "nongdari_3": {
+                    "type": "equirectangular",
+                    "panorama": "nongdari/nongdari_background_3.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_2" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_4" }
+                    ]
+                },
+                "nongdari_4": {
+                    "type": "equirectangular",
+                    "panorama": "nongdari/nongdari_background_4.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_3" }
+                    ]
+                },
+
+                /* ==========================================
+                   2. 청주 청석굴 동선 (배경 5장 연결)
+                   ========================================== */
+                "chungseokgul_0": {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background.jpg", 
+                    "hotSpots": [
+                        { "pitch": 5, "yaw": -30, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_1" }
+                    ]
+                },
+                "chungseokgul_1": {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
+                    "hotSpots": [
+                        { "pitch": 5, "yaw": -30, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_0" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_2" }
+                    ]
+                },
+                "chungseokgul_2": {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_1" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_3" }
+                    ]
+                },
+                "chungseokgul_3": {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_2" },
+                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_4" }
+                    ]
+                },
+                "chungseokgul_4": {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
+                    "hotSpots": [
+                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_3" }
                     ]
                 }
             }
@@ -194,7 +205,6 @@
 
         function changeScene(sceneId, element) {
             viewer.loadScene(sceneId);
-            
             let items = document.getElementsByClassName('menu-item');
             for (let i = 0; i < items.length; i++) {
                 items[i].classList.remove('active');
