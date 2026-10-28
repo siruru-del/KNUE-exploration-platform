@@ -12,7 +12,6 @@
         body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
         #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
 
-        /* 📍 메뉴 열기/닫기 토글 버튼 */
         #menu-toggle-btn {
             position: absolute; top: 20px; left: 20px; z-index: 30;
             background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
@@ -21,7 +20,6 @@
         }
         #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
 
-        /* 플로팅 사이드바 */
         #sidebar {
             position: absolute; top: 70px; left: 20px; width: 260px;
             background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
@@ -39,9 +37,6 @@
 
         .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
         
-        /* -------------------------------------
-           사진 + 텍스트 분할 팝업(모달) 디자인
-           ------------------------------------- */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
             background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
@@ -74,7 +69,6 @@
 
     <div id="panorama"></div>
 
-    <!-- 사진 확대 팝업(모달) 창 -->
     <div id="imageModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-wrapper">
@@ -92,7 +86,6 @@
         var modalImg = document.getElementById("modalImg");
         var modalDesc = document.getElementById("modalDesc");
 
-        // 팝업 열기 (이미지와 텍스트 동시 처리)
         function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
             modalImg.src = args.img;
@@ -103,6 +96,19 @@
             modal.style.display = "none";
         }
 
+        /* 
+           ✅ 시야각 제한 공통 설정값 
+           - haov, vaov: 사진이 화면을 덮는 비율 (일반 사진에 맞게 축소)
+           - minYaw, maxYaw: 좌우로 고개를 돌릴 수 있는 한계치
+           - minPitch, maxPitch: 위아래로 고개를 돌릴 수 있는 한계치
+        */
+        const commonViewSettings = {
+            "haov": 150, "vaov": 80, 
+            "minYaw": -45, "maxYaw": 45, 
+            "minPitch": -25, "maxPitch": 25,
+            "minHfov": 40, "maxHfov": 100, "hfov": 80
+        };
+
         let viewer = pannellum.viewer('panorama', {
             "default": {
                 "firstScene": "nongdari_0", 
@@ -110,96 +116,104 @@
                 "autoLoad": true,
                 "showZoomCtrl": true,
                 "mouseZoom": true,
-                "hotSpotDebug": true /* 🚀 F12 콘솔창에서 클릭한 곳의 좌표(Pitch, Yaw)를 띄워주는 기능 */
+                "hotSpotDebug": true
             },
             "scenes": {
                 /* ==========================================
-                   1. 진천 농다리 동선 (배경 5장 연결)
+                   1. 진천 농다리 동선 
                    ========================================== */
-                "nongdari_0": {
+                "nongdari_0": Object.assign({
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background.jpg", 
                     "hotSpots": [
                         { "pitch": 0, "yaw": 20, "type": "info", "text": "농다리 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>농다리 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_1" }
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_1" }
                     ]
-                },
-                "nongdari_1": {
+                }, commonViewSettings),
+                
+                "nongdari_1": Object.assign({
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_1.jpg", 
                     "hotSpots": [
                         { "pitch": 0, "yaw": 20, "type": "info", "text": "농다리 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>농다리 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_0" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_2" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_0" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_2" }
                     ]
-                },
-                "nongdari_2": {
+                }, commonViewSettings),
+
+                "nongdari_2": Object.assign({
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_2.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_1" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_3" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_1" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_3" }
                     ]
-                },
-                "nongdari_3": {
+                }, commonViewSettings),
+
+                "nongdari_3": Object.assign({
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_3.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_2" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_4" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_2" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_4" }
                     ]
-                },
-                "nongdari_4": {
+                }, commonViewSettings),
+
+                "nongdari_4": Object.assign({
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_4.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_3" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_3" }
                     ]
-                },
+                }, commonViewSettings),
 
                 /* ==========================================
-                   2. 청주 청석굴 동선 (배경 5장 연결)
+                   2. 청주 청석굴 동선 
                    ========================================== */
-                "chungseokgul_0": {
+                "chungseokgul_0": Object.assign({
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -30, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_1" }
+                        { "pitch": 5, "yaw": -15, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_1" }
                     ]
-                },
-                "chungseokgul_1": {
+                }, commonViewSettings),
+
+                "chungseokgul_1": Object.assign({
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
                     "hotSpots": [
-                        { "pitch": 5, "yaw": -30, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_0" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_2" }
+                        { "pitch": 5, "yaw": -15, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_0" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_2" }
                     ]
-                },
-                "chungseokgul_2": {
+                }, commonViewSettings),
+
+                "chungseokgul_2": Object.assign({
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_1" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_3" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_1" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_3" }
                     ]
-                },
-                "chungseokgul_3": {
+                }, commonViewSettings),
+
+                "chungseokgul_3": Object.assign({
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_2" },
-                        { "pitch": -10, "yaw": 90, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_4" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_2" },
+                        { "pitch": -10, "yaw": 30, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_4" }
                     ]
-                },
-                "chungseokgul_4": {
+                }, commonViewSettings),
+
+                "chungseokgul_4": Object.assign({
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
                     "hotSpots": [
-                        { "pitch": -10, "yaw": -90, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_3" }
+                        { "pitch": -10, "yaw": -30, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_3" }
                     ]
-                }
+                }, commonViewSettings)
             }
         });
 
