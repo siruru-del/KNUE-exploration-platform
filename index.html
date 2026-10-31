@@ -124,19 +124,18 @@
             "backgroundColor": [0, 0, 0] 
         };
 
-        // 1. 기존 가로로 넓은 사진용
+        // 1. 가로형 세팅
         const horizontalSettings = {
             "haov": 240, "vaov": 90, 
             "minYaw": -115, "maxYaw": 115, 
             "minPitch": -40, "maxPitch": 40
         };
 
-        // 2. 🌟 수정됨: 가로가 짧은 세로형 전용 (좌우 좁게, 위아래 시원하게)
+        // 2. 세로형 세팅 (좌우 제한, 위아래 확장)
         const verticalSettings = {
-            "haov": 90,     // 가로 화각을 확 줄여서 억지로 늘려지는 현상 차단
-            "vaov": 180,    // 세로 화각을 넓게 잡아 세로 길이에 맞춤
-            "minYaw": -35, "maxYaw": 35,   // 좌우 회전은 살짝만 가능하게 제한
-            "minPitch": -85, "maxPitch": 85 // 고개를 위아래로 크게 젖힐 수 있도록 확장
+            "haov": 90, "vaov": 180,    
+            "minYaw": -35, "maxYaw": 35,   
+            "minPitch": -85, "maxPitch": 85 
         };
 
         const NAV_PITCH = -20; 
@@ -153,8 +152,9 @@
             },
             "scenes": {
                 /* ==========================================
-                   1. 진천 농다리 동선 (가로형 세팅 유지)
+                   1. 진천 농다리 동선 
                    ========================================== */
+                // 농다리 1번째 사진 (가로형)
                 "nongdari_0": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background.jpg", 
@@ -164,6 +164,7 @@
                     ]
                 }),
                 
+                // 농다리 2번째 사진 (가로형)
                 "nongdari_1": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_1.jpg", 
@@ -174,7 +175,8 @@
                     ]
                 }),
 
-                "nongdari_2": Object.assign({}, commonSettings, horizontalSettings, {
+                // 농다리 3번째 사진 (🌟 세로형 적용)
+                "nongdari_2": Object.assign({}, commonSettings, verticalSettings, {
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_2.jpg", 
                     "hotSpots": [
@@ -183,6 +185,7 @@
                     ]
                 }),
 
+                // 농다리 4번째 사진 (가로형)
                 "nongdari_3": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_3.jpg", 
@@ -192,6 +195,7 @@
                     ]
                 }),
 
+                // 농다리 5번째 사진 (가로형)
                 "nongdari_4": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_4.jpg", 
@@ -201,9 +205,10 @@
                 }),
 
                 /* ==========================================
-                   2. 청주 청석굴 동선 (🌟 가로가 짧은 세로형 세팅 적용)
+                   2. 청주 청석굴 동선 
                    ========================================== */
-                "chungseokgul_0": Object.assign({}, commonSettings, verticalSettings, {
+                // 청석굴 1번째 사진 (🌟 가로형으로 원상복구)
+                "chungseokgul_0": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "hotSpots": [
@@ -212,6 +217,7 @@
                     ]
                 }),
 
+                // 청석굴 2번째 사진 (세로형 유지)
                 "chungseokgul_1": Object.assign({}, commonSettings, verticalSettings, {
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
@@ -222,7 +228,8 @@
                     ]
                 }),
 
-                "chungseokgul_2": Object.assign({}, commonSettings, verticalSettings, {
+                // 청석굴 3번째 사진 (🌟 가로형으로 원상복구)
+                "chungseokgul_2": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
                     "hotSpots": [
@@ -231,7 +238,8 @@
                     ]
                 }),
 
-                "chungseokgul_3": Object.assign({}, commonSettings, verticalSettings, {
+                // 청석굴 4번째 사진 (🌟 가로형으로 원상복구)
+                "chungseokgul_3": Object.assign({}, commonSettings, horizontalSettings, {
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
                     "hotSpots": [
@@ -240,6 +248,7 @@
                     ]
                 }),
 
+                // 청석굴 5번째 사진 (세로형 유지)
                 "chungseokgul_4": Object.assign({}, commonSettings, verticalSettings, {
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
