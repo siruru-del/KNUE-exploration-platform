@@ -38,43 +38,41 @@
         .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
         
         /* -------------------------------------
-           🌟 구글맵스 스타일: 바닥에 눕혀진 화살표 마크
+           🌟 안정적인 구글 스트리트뷰 스타일 바닥 화살표
            ------------------------------------- */
         .custom-hotspot {
-            width: 100px; height: 100px; 
+            width: 70px !important; 
+            height: 70px !important; 
+            margin-left: -35px; /* 중앙 정렬을 위해 너비의 절반만큼 이동 */
+            margin-top: -35px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            color: #222;
+            font-size: 35px;
+            display: flex !important; 
+            align-items: center; 
+            justify-content: center;
             cursor: pointer;
-            /* 기존의 동그란 렌즈 버튼 느낌을 아예 지워버립니다 */
-            background: transparent; 
-            box-shadow: none; 
-            backdrop-filter: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            /* 핵심: 동그란 버튼 자체를 바닥으로 60도 눕힙니다 */
+            transform: perspective(300px) rotateX(60deg);
+            transition: all 0.2s ease;
+            z-index: 2;
         }
 
-        .custom-hotspot::after {
-            content: "▲"; 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 60px; 
-            color: rgba(255, 255, 255, 0.5); /* 반투명 흰색 */
-            /* 핵심: X축으로 70도 눕히고, 세로로 늘려서 원근감을 줍니다 */
-            transform: perspective(200px) rotateX(70deg) scale(1, 1.8); 
-            transform-origin: center bottom; 
-            transition: all 0.3s ease;
-            text-shadow: 0 10px 10px rgba(0,0,0,0.8); /* 바닥에 비치는 그림자 */
+        .custom-hotspot::before {
+            content: "▲";
+            margin-top: -5px; /* 화살표 시각적 중심 맞추기 */
         }
 
-        .custom-hotspot:hover::after { 
-            color: rgba(255, 255, 255, 1); 
-            transform: perspective(200px) rotateX(70deg) scale(1.1, 2.0); /* 마우스 올리면 커짐 */
-            text-shadow: 0 15px 15px rgba(0,0,0,1); 
+        .custom-hotspot:hover { 
+            background-color: rgba(255, 255, 255, 1);
+            transform: perspective(300px) rotateX(60deg) scale(1.2); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.7);
         }
 
-        /* 말풍선(툴팁)은 눕지 않도록 설정 */
-        .custom-hotspot .pnlm-tooltip {
-            display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.8); color: white; padding: 6px 14px;
-            border-radius: 6px; font-size: 14px; font-weight: bold; white-space: nowrap; pointer-events: none;
-        }
-        .custom-hotspot:hover .pnlm-tooltip { display: block; }
+        /* 화살표 위에 뜨는 글씨(툴팁)는 구글맵스처럼 아예 숨김 처리 */
+        .custom-hotspot .pnlm-tooltip { display: none !important; }
 
         /* -------------------------------------
            팝업(모달) 창 사진 비율 고도화
@@ -153,9 +151,9 @@
         };
 
         /* ----------------------------------------------------
-           📍 고정형 좌표축 설정 (바닥에 더 가깝게 내림)
+           📍 고정형 좌표축 설정 (위치를 -20으로 살짝 올려서 안전하게 보이도록 수정)
            ---------------------------------------------------- */
-        const NAV_PITCH = -35; // 이전의 -25보다 더 아래(바닥)로 내렸습니다.
+        const NAV_PITCH = -20; 
         const NAV_FWD = 0;
         const NAV_BWD = 180;
 
@@ -176,7 +174,7 @@
                     "panorama": "nongdari/nongdari_background.jpg", 
                     "hotSpots": [
                         { "pitch": 5, "yaw": -10, "type": "info", "text": "농다리 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>농다리 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" }
                     ]
                 }),
                 
@@ -185,8 +183,8 @@
                     "panorama": "nongdari/nongdari_background_1.jpg", 
                     "hotSpots": [
                         { "pitch": 5, "yaw": -10, "type": "info", "text": "농다리 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>농다리 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_0", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -194,8 +192,8 @@
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_2.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -203,8 +201,8 @@
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_3.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "nongdari_4", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_4", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -212,7 +210,7 @@
                     "type": "equirectangular",
                     "panorama": "nongdari/nongdari_background_4.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -224,7 +222,7 @@
                     "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "hotSpots": [
                         { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -233,8 +231,8 @@
                     "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
                     "hotSpots": [
                         { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_0", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -242,8 +240,8 @@
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -251,8 +249,8 @@
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "text": "앞으로 이동", "sceneId": "chungseokgul_4", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" },
+                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_4", "cssClass": "custom-hotspot" }
                     ]
                 }),
 
@@ -260,7 +258,7 @@
                     "type": "equirectangular",
                     "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
                     "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "text": "뒤로 이동", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
+                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
                     ]
                 })
             }
