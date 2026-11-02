@@ -1,93 +1,315 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>충북 지질 원격답사 플랫폼</title>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
-        #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
 
-        #menu-toggle-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 30;
-            background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
-            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background: #000;
         }
-        #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
+
+        #panorama {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            background: #000;
+        }
+
+        /* 답사 지역 메뉴 */
+        #menu-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 30;
+            padding: 12px 18px;
+            border: 0;
+            border-radius: 25px;
+            color: #fff;
+            background: rgba(20, 20, 20, .86);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .4);
+            backdrop-filter: blur(5px);
+        }
+
+        #menu-toggle-btn:hover {
+            background: rgba(50, 50, 50, .95);
+        }
 
         #sidebar {
-            position: absolute; top: 70px; left: 20px; width: 260px;
-            background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 20; backdrop-filter: blur(5px);
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease; transform-origin: top left;
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            z-index: 30;
+            width: 260px;
+            color: #fff;
+            background: rgba(25, 25, 25, .88);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
+            backdrop-filter: blur(6px);
+            transition: transform .28s ease, opacity .24s ease;
+            transform-origin: top left;
         }
-        #sidebar.collapsed { transform: translateX(-120%); opacity: 0; pointer-events: none; }
-        #sidebar h2 { text-align: center; padding: 20px 15px 15px; margin: 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-        .menu-item { padding: 18px 20px; margin: 8px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 16px; font-weight: bold; }
-        .menu-item:hover { background-color: rgba(255, 255, 255, 0.1); }
-        .menu-item.active { background-color: #fff; color: #000; }
-        .menu-item span { display: block; font-size: 12px; color: #aaa; margin-top: 6px; font-weight: normal; }
-        .menu-item.active span { color: #555; }
+        #sidebar.collapsed {
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+        }
 
-        .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
-        
-        .custom-hotspot {
-            width: 70px !important; 
-            height: 70px !important; 
-            margin-left: -35px;
-            margin-top: -35px;
-            background-color: rgba(255, 255, 255, 0.6);
+        #sidebar h2 {
+            margin: 0;
+            padding: 20px 15px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, .12);
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .menu-item {
+            margin: 8px;
+            padding: 17px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color .18s ease, color .18s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .menu-item.active {
+            color: #111;
+            background: #fff;
+        }
+
+        .menu-item span {
+            display: block;
+            margin-top: 6px;
+            color: #aaa;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .menu-item.active span {
+            color: #555;
+        }
+
+        /* 화면 중앙 부근에 고정되는 이동 버튼 */
+        #scene-navigation {
+            position: fixed;
+            top: 68%;
+            left: 50%;
+            z-index: 60;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        .nav-hotspot {
+            position: absolute;
+            top: 0;
+            width: 72px;
+            height: 58px;
+            padding: 0;
+            border: 2px solid rgba(255, 255, 255, .85);
             border-radius: 50%;
             color: #222;
-            font-size: 35px;
-            display: flex !important; 
-            align-items: center; 
-            justify-content: center;
+            background: rgba(255, 255, 255, .78);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .42);
+            font-size: 30px;
+            line-height: 1;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            transform: perspective(300px) rotateX(60deg);
-            transition: all 0.2s ease;
-            z-index: 2;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) perspective(350px) rotateX(48deg);
+            transition: background-color .16s ease, box-shadow .16s ease, opacity .16s ease;
+            -webkit-tap-highlight-color: transparent;
         }
-        .custom-hotspot::before { content: "▲"; margin-top: -5px; }
-        .custom-hotspot:hover { 
-            background-color: rgba(255, 255, 255, 1);
-            transform: perspective(300px) rotateX(60deg) scale(1.2); 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.7);
-        }
-        .custom-hotspot .pnlm-tooltip { display: none !important; }
 
+        .nav-hotspot:hover:not(:disabled) {
+            background: rgba(255, 255, 255, .98);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .55);
+        }
+
+        .nav-hotspot:active:not(:disabled) {
+            background: #fff;
+        }
+
+        .nav-hotspot:disabled {
+            opacity: .22;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        #nav-prev { left: -91px; }
+        #nav-next { left: 0; }
+
+        #route-progress {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 60;
+            min-width: 58px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 18px;
+            color: #fff;
+            background: rgba(20, 20, 20, .72);
+            font-size: 13px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .pnlm-controls-container {
+            top: auto !important;
+            bottom: 20px !important;
+            left: 20px !important;
+        }
+
+        /* 상세 사진 팝업 */
         .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
-            background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .9);
+            backdrop-filter: blur(5px);
         }
+
         .modal-wrapper {
-            display: flex; margin: auto; width: 90%; max-width: 1200px; height: 75vh; position: relative; top: 50%; transform: translateY(-50%);
-            background-color: #222; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden;
+            display: flex;
+            position: relative;
+            top: 50%;
+            width: 90%;
+            max-width: 1200px;
+            height: 75vh;
+            margin: auto;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #222;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, .5);
+            transform: translateY(-50%);
         }
-        .modal-content { width: 60%; height: 100%; object-fit: contain; background: #000; }
-        .modal-text { width: 40%; height: 100%; padding: 30px; box-sizing: border-box; color: #fff; font-size: 16px; line-height: 1.6; overflow-y: auto; }
-        .close { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; z-index: 1001; }
+
+        .modal-content {
+            width: 60%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .modal-text {
+            width: 40%;
+            height: 100%;
+            padding: 30px;
+            overflow-y: auto;
+            color: #fff;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            z-index: 1001;
+            color: #fff;
+            font-size: 45px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         .close:hover { color: #aaa; }
+
+        @media (max-width: 600px) {
+            #menu-toggle-btn {
+                top: 12px;
+                left: 12px;
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            #sidebar {
+                top: 60px;
+                left: 12px;
+                width: min(260px, calc(100vw - 24px));
+            }
+
+            #scene-navigation { top: 68%; }
+
+            .nav-hotspot {
+                width: 64px;
+                height: 52px;
+                font-size: 27px;
+            }
+
+            #nav-prev { left: -78px; }
+            #route-progress { right: 12px; bottom: 12px; }
+
+            .pnlm-controls-container {
+                bottom: 12px !important;
+                left: 12px !important;
+            }
+
+            .modal-wrapper {
+                flex-direction: column;
+                width: 94%;
+                height: 82vh;
+            }
+
+            .modal-content {
+                width: 100%;
+                height: 55%;
+            }
+
+            .modal-text {
+                width: 100%;
+                height: 45%;
+                padding: 18px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
-<body>
 
-    <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
+<body>
+    <button id="menu-toggle-btn" type="button" onclick="toggleSidebar()">
+        ☰ 답사 지역 메뉴
+    </button>
 
     <div id="sidebar" class="collapsed">
         <h2>🗺️ 어디로 이동할까요?</h2>
-        <div class="menu-item active" onclick="changeScene('nongdari_0', this)">
+
+        <div class="menu-item active" data-route="nongdari"
+             onclick="changeScene('nongdari_0')">
             1. 진천 농다리
             <span>마우스로 드래그하여 주변 둘러보기</span>
         </div>
-        <div class="menu-item" onclick="changeScene('chungseokgul_0', this)">
+
+        <div class="menu-item" data-route="chungseokgul"
+             onclick="changeScene('chungseokgul_0')">
             2. 청주 청석굴
             <span>절벽의 습곡과 층리 관찰</span>
         </div>
@@ -95,161 +317,679 @@
 
     <div id="panorama"></div>
 
+    <!-- 중앙 고정 이동 버튼 -->
+    <div id="scene-navigation" aria-label="답사 지점 이동">
+        <button id="nav-prev" class="nav-hotspot" type="button"
+                aria-label="이전 답사 지점" title="이전 지점"
+                onclick="moveToScene(-1)">◀</button>
+
+        <button id="nav-next" class="nav-hotspot" type="button"
+                aria-label="다음 답사 지점" title="다음 지점"
+                onclick="moveToScene(1)">▲</button>
+    </div>
+
+    <div id="route-progress">1 / 5</div>
+
     <div id="imageModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-wrapper">
-            <img class="modal-content" id="modalImg">
-            <div class="modal-text" id="modalDesc">여기에 설명이 표시됩니다.</div>
+            <img class="modal-content" id="modalImg" alt="답사 지점 상세 사진">
+            <div class="modal-text" id="modalDesc">
+                여기에 설명이 표시됩니다.
+            </div>
         </div>
     </div>
 
     <script>
-        function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed"); }
-        var modal = document.getElementById("imageModal");
-        var modalImg = document.getElementById("modalImg");
-        var modalDesc = document.getElementById("modalDesc");
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImg');
+        const modalDesc = document.getElementById('modalDesc');
 
         function showImagePopup(hotSpotDiv, args) {
-            modal.style.display = "block";
+            modal.style.display = 'block';
             modalImg.src = args.img;
             modalDesc.innerHTML = args.desc;
         }
-        function closeModal() { modal.style.display = "none"; }
 
-        const commonSettings = {
-            "minHfov": 30, 
-            "maxHfov": 90,    
-            "hfov": 80,       
-            "friction": 0.8,  
-            "backgroundColor": [0, 0, 0] 
-        };
+        function closeModal() {
+            modal.style.display = 'none';
+        }
 
-        // 🌟 다시 모든 씬을 이 가로형 설정으로 통일했습니다.
-        const horizontalSettings = {
-            "haov": 240, "vaov": 90, 
-            "minYaw": -115, "maxYaw": 115, 
-            "minPitch": -40, "maxPitch": 40
-        };
-
-        const NAV_PITCH = -20; 
-        const NAV_FWD = 0;
-        const NAV_BWD = 180;
-
-        let viewer = pannellum.viewer('panorama', {
-            "default": {
-                "firstScene": "nongdari_0", 
-                "sceneFadeDuration": 1000, 
-                "autoLoad": true,
-                "showZoomCtrl": true,
-                "mouseZoom": true
-            },
-            "scenes": {
-                /* ==========================================
-                   1. 진천 농다리 동선 (모두 가로형)
-                   ========================================== */
-                "nongdari_0": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "농다리 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>농다리 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-                
-                "nongdari_1": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_1.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "농다리 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>농다리 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "nongdari_2": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_2.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "nongdari_3": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_3.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_4", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "nongdari_4": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_4.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                /* ==========================================
-                   2. 청주 청석굴 동선 (모두 가로형 원상복구)
-                   ========================================== */
-                "chungseokgul_0": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_1": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_2": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_3": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_4", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_4": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
-                    ]
-                })
-            }
+        modal.addEventListener('click', event => {
+            if (event.target === modal) closeModal();
         });
 
-        function changeScene(sceneId, element) {
-            viewer.loadScene(sceneId);
-            let items = document.getElementsByClassName('menu-item');
-            for (let i = 0; i < items.length; i++) {
-                items[i].classList.remove('active');
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeModal();
+        });
+
+        const sceneRoutes = {
+            nongdari: [
+                'nongdari_0',
+                'nongdari_1',
+                'nongdari_2',
+                'nongdari_3',
+                'nongdari_4'
+            ],
+            chungseokgul: [
+                'chungseokgul_0',
+                'chungseokgul_1',
+                'chungseokgul_2',
+                'chungseokgul_3',
+                'chungseokgul_4'
+            ]
+        };
+
+        const sceneDefinitions = {
+            nongdari_0: {
+                panorama: 'nongdari/nongdari_background.jpg',
+                hotSpots: [
+                    {
+                        pitch: 5,
+                        yaw: -10,
+                        type: 'info',
+                        text: '농다리 상세 1',
+                        clickHandlerFunc: showImagePopup,
+                        clickHandlerArgs: {
+                            img: 'nongdari/nongdari_1.jpg',
+                            desc: '<h3>농다리 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>'
+                        }
+                    }
+                ]
+            },
+
+            nongdari_1: {
+                panorama: 'nongdari/nongdari_background_1.jpg',
+                hotSpots: [
+                    {
+                        pitch: 5,
+                        yaw: -10,
+                        type: 'info',
+                        text: '농다리 상세 2',
+                        clickHandlerFunc: showImagePopup,
+                        clickHandlerArgs: {
+                            img: 'nongdari/nongdari_2.jpg',
+                            desc: '<h3>농다리 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>'
+                        }
+                    }
+                ]
+            },
+
+            nongdari_2: {
+                panorama: 'nongdari/nongdari_background_2.jpg',
+                hotSpots: []
+            },
+
+            nongdari_3: {
+                panorama: 'nongdari/nongdari_background_3.jpg',
+                hotSpots: []
+            },
+
+            nongdari_4: {
+                panorama: 'nongdari/nongdari_background_4.jpg',
+                hotSpots: []
+            },
+
+            chungseokgul_0: {
+                panorama: 'chungseokgul/chungseokgul_background.jpg',
+                hotSpots: [
+                    {
+                        pitch: 5,
+                        yaw: -10,
+                        type: 'info',
+                        text: '청석굴 암벽 1',
+                        clickHandlerFunc: showImagePopup,
+                        clickHandlerArgs: {
+                            img: 'chungseokgul/chungseokgul_1.jpg',
+                            desc: '<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>'
+                        }
+                    }
+                ]
+            },
+
+            chungseokgul_1: {
+                panorama: 'chungseokgul/chungseokgul_background_1.jpg',
+                hotSpots: [
+                    {
+                        pitch: 5,
+                        yaw: -10,
+                        type: 'info',
+                        text: '청석굴 암벽 2',
+                        clickHandlerFunc: showImagePopup,
+                        clickHandlerArgs: {
+                            img: 'chungseokgul/chungseokgul_2.jpg',
+                            desc: '<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>'
+                        }
+                    }
+                ]
+            },
+
+            chungseokgul_2: {
+                panorama: 'chungseokgul/chungseokgul_background_2.jpg',
+                hotSpots: []
+            },
+
+            chungseokgul_3: {
+                panorama: 'chungseokgul/chungseokgul_background_3.jpg',
+                hotSpots: []
+            },
+
+            chungseokgul_4: {
+                panorama: 'chungseokgul/chungseokgul_background_4.jpg',
+                hotSpots: []
             }
-            element.classList.add('active');
+        };
+
+        const panoramaElement = document.getElementById('panorama');
+        const prevButton = document.getElementById('nav-prev');
+        const nextButton = document.getElementById('nav-next');
+        const routeProgress = document.getElementById('route-progress');
+
+        let viewer = null;
+        let currentSceneId = 'nongdari_0';
+        let navigationBusy = false;
+
+        const addedScenes = new Set();
+        const sceneConfigs = new Map();
+        const scenePromises = new Map();
+
+        /*
+          ★ 세로 파노라마 확대 / 축소 설정 ★
+
+          기본적으로 56도까지 줌아웃합니다.
+          농다리 두 번째 / 세 번째 장면은 최대 65도까지 허용합니다.
+
+          단, 실제 사진 범위가 좁다면 자동으로 더 작게 제한됩니다.
+        */
+        const PORTRAIT_MAX_HFOV = 56;
+
+        const PORTRAIT_SCENE_MAX_HFOV = {
+            nongdari_1: 65,
+            nongdari_2: 65
+        };
+
+        function getRouteName(sceneId) {
+            return sceneId.startsWith('nongdari_')
+                ? 'nongdari'
+                : 'chungseokgul';
         }
+
+        function updateNavigation(sceneId = currentSceneId) {
+            currentSceneId = sceneId;
+
+            const routeName = getRouteName(sceneId);
+            const route = sceneRoutes[routeName];
+            const index = route.indexOf(sceneId);
+
+            prevButton.disabled = navigationBusy || index <= 0;
+
+            nextButton.disabled =
+                navigationBusy ||
+                index < 0 ||
+                index >= route.length - 1;
+
+            routeProgress.textContent =
+                `${index + 1} / ${route.length}`;
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.toggle(
+                    'active',
+                    item.dataset.route === routeName
+                );
+            });
+        }
+
+        // 사진 크기 확인
+        function loadImageDimensions(src) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+
+                image.onload = () => resolve({
+                    width: image.naturalWidth,
+                    height: image.naturalHeight
+                });
+
+                image.onerror = () => reject(
+                    new Error(`이미지를 불러오지 못했습니다: ${src}`)
+                );
+
+                image.src = src;
+            });
+        }
+
+        /*
+          사진의 가로세로 비율에 따라 파노라마 시야각을 계산합니다.
+        */
+        function calculatePanoramaGeometry(width, height) {
+            const MAX_HAOV = 240;
+            const MAX_VAOV = 170;
+
+            const ratio = width / height;
+
+            const scale = Math.min(
+                MAX_HAOV / width,
+                MAX_VAOV / height
+            );
+
+            const haov = width * scale;
+            const vaov = height * scale;
+            const isPortrait = ratio < 0.90;
+
+            return {
+                haov,
+                vaov,
+                ratio,
+                isPortrait
+            };
+        }
+
+        /*
+          ★ 핵심: 최대 줌아웃과 상하 이동 범위 계산 ★
+
+          사진 자체의 각도와 현재 모니터 비율을 반영해
+          검은 여백이 보이지 않는 범위까지 줌아웃합니다.
+
+          세로형 사진은 기본 56도,
+          특정 농다리 사진은 65도까지 허용합니다.
+        */
+        function getSafeViewBounds(geometry, sceneId) {
+            const rect = panoramaElement.getBoundingClientRect();
+
+            const viewportAspect = Math.max(
+                0.25,
+                rect.width / Math.max(1, rect.height)
+            );
+
+            const horizontalMargin = geometry.isPortrait ? 7 : 3;
+            const verticalMargin = geometry.isPortrait ? 15 : 3;
+
+            const safeHaov = Math.max(
+                12,
+                geometry.haov - horizontalMargin * 2
+            );
+
+            const safeVaov = Math.max(
+                12,
+                geometry.vaov - verticalMargin * 2
+            );
+
+            // 세로 범위를 초과하지 않는 최대 수평 시야각
+            const maxFromVertical = 2 * Math.atan(
+                Math.tan(
+                    (safeVaov / 2) * Math.PI / 180
+                ) * viewportAspect
+            ) * 180 / Math.PI;
+
+            const portraitCap =
+                PORTRAIT_SCENE_MAX_HFOV[sceneId]
+                ?? PORTRAIT_MAX_HFOV;
+
+            const requestedMax = geometry.isPortrait
+                ? portraitCap
+                : 90;
+
+            const maxHfov = Math.max(
+                12,
+                Math.min(
+                    requestedMax,
+                    safeHaov,
+                    maxFromVertical
+                )
+            );
+
+            const minHfov = Math.min(
+                28,
+                maxHfov * 0.45
+            );
+
+            // 최대 줌아웃 시 실제 화면에 보이는 세로 화각
+            const maxVisibleVerticalFov = 2 * Math.atan(
+                Math.tan(
+                    (maxHfov / 2) * Math.PI / 180
+                ) / viewportAspect
+            ) * 180 / Math.PI;
+
+            const yawLimit = Math.max(
+                0,
+                geometry.haov / 2 - horizontalMargin
+            );
+
+            const photoSafePitch = Math.max(
+                0,
+                (geometry.vaov - maxVisibleVerticalFov) / 2
+                - verticalMargin
+            );
+
+            // 세로 사진은 상하 ±30도 또는 그보다 작은 안전 범위
+            const pitchLimit = geometry.isPortrait
+                ? Math.min(30, photoSafePitch)
+                : photoSafePitch;
+
+            return {
+                minHfov,
+                maxHfov,
+                minYaw: -yawLimit,
+                maxYaw: yawLimit,
+                minPitch: -pitchLimit,
+                maxPitch: pitchLimit
+            };
+        }
+
+        function createSceneConfig(sceneId, dimensions) {
+            const definition = sceneDefinitions[sceneId];
+
+            const geometry = calculatePanoramaGeometry(
+                dimensions.width,
+                dimensions.height
+            );
+
+            const viewBounds = getSafeViewBounds(
+                geometry,
+                sceneId
+            );
+
+            /*
+              ★ 변경된 시작 시야각 ★
+
+              기존에는 세로 사진을 34도 이하로 확대하여 시작했지만
+              이제는 모든 사진을 허용된 최대 줌아웃 상태로 시작합니다.
+            */
+            const startHfov = viewBounds.maxHfov;
+
+            const config = {
+                type: 'equirectangular',
+                panorama: definition.panorama,
+
+                haov: geometry.haov,
+                vaov: geometry.vaov,
+                vOffset: 0,
+
+                hfov: startHfov,
+
+                minHfov: viewBounds.minHfov,
+                maxHfov: viewBounds.maxHfov,
+
+                minYaw: viewBounds.minYaw,
+                maxYaw: viewBounds.maxYaw,
+
+                minPitch: viewBounds.minPitch,
+                maxPitch: viewBounds.maxPitch,
+
+                pitch: 0,
+                yaw: 0,
+
+                avoidShowingBackground: true,
+                backgroundColor: [0, 0, 0],
+                friction: 0.8,
+
+                hotSpots: definition.hotSpots
+            };
+
+            sceneConfigs.set(sceneId, {
+                config,
+                geometry
+            });
+
+            return config;
+        }
+
+        async function buildSceneConfig(sceneId) {
+            const definition = sceneDefinitions[sceneId];
+
+            if (!definition) {
+                throw new Error(
+                    `등록되지 않은 장면입니다: ${sceneId}`
+                );
+            }
+
+            const dimensions = await loadImageDimensions(
+                definition.panorama
+            );
+
+            return createSceneConfig(sceneId, dimensions);
+        }
+
+        async function ensureSceneAdded(sceneId) {
+            if (addedScenes.has(sceneId)) return;
+
+            if (!viewer) {
+                throw new Error(
+                    '파노라마 뷰어가 아직 준비되지 않았습니다.'
+                );
+            }
+
+            if (!scenePromises.has(sceneId)) {
+                const promise = buildSceneConfig(sceneId)
+                    .then(config => {
+                        viewer.addScene(sceneId, config);
+                        addedScenes.add(sceneId);
+                    })
+                    .finally(() => {
+                        scenePromises.delete(sceneId);
+                    });
+
+                scenePromises.set(sceneId, promise);
+            }
+
+            await scenePromises.get(sceneId);
+        }
+
+        function moveToScene(direction) {
+            if (!viewer || navigationBusy) return;
+
+            const route = sceneRoutes[
+                getRouteName(currentSceneId)
+            ];
+
+            const currentIndex = route.indexOf(currentSceneId);
+            const targetIndex = currentIndex + direction;
+
+            if (
+                targetIndex < 0 ||
+                targetIndex >= route.length
+            ) {
+                return;
+            }
+
+            navigateToScene(route[targetIndex]);
+        }
+
+        async function changeScene(sceneId) {
+            if (!viewer || navigationBusy) return;
+
+            await navigateToScene(sceneId);
+
+            document.getElementById('sidebar')
+                .classList.add('collapsed');
+        }
+
+        async function navigateToScene(sceneId) {
+            if (
+                !viewer ||
+                navigationBusy ||
+                sceneId === currentSceneId
+            ) {
+                return;
+            }
+
+            navigationBusy = true;
+            updateNavigation(currentSceneId);
+
+            try {
+                await ensureSceneAdded(sceneId);
+
+                /*
+                  다음 장면으로 이동할 때 이전 장면의 확대 상태를
+                  유지하지 않고 새 장면의 최대 줌아웃 값을 사용합니다.
+                */
+                const targetHfov =
+                    sceneConfigs.get(sceneId).config.hfov;
+
+                viewer.loadScene(
+                    sceneId,
+                    0,
+                    0,
+                    targetHfov
+                );
+
+            } catch (error) {
+                console.error(error);
+
+                navigationBusy = false;
+                updateNavigation(currentSceneId);
+
+                alert(
+                    '답사 사진을 불러오지 못했습니다. 사진 폴더와 파일 이름을 확인해 주세요.'
+                );
+            }
+        }
+
+        // 다음 답사 지점 미리 준비
+        async function prefetchNextScene(sceneId) {
+            const route = sceneRoutes[getRouteName(sceneId)];
+            const index = route.indexOf(sceneId);
+            const nextSceneId = route[index + 1];
+
+            if (
+                !nextSceneId ||
+                addedScenes.has(nextSceneId)
+            ) {
+                return;
+            }
+
+            try {
+                await ensureSceneAdded(nextSceneId);
+            } catch (error) {
+                console.warn(
+                    '다음 답사 지점 미리 준비 실패:',
+                    error
+                );
+            }
+        }
+
+        /*
+          화면 크기 변경 시 줌아웃 한계와
+          상하 이동 제한을 다시 계산합니다.
+        */
+        function refreshZoomLimit() {
+            if (!viewer) return;
+
+            const saved = sceneConfigs.get(currentSceneId);
+            if (!saved) return;
+
+            viewer.resize();
+
+            const bounds = getSafeViewBounds(
+                saved.geometry,
+                currentSceneId
+            );
+
+            viewer.setHfovBounds([
+                bounds.minHfov,
+                bounds.maxHfov
+            ]);
+
+            viewer.setYawBounds([
+                bounds.minYaw,
+                bounds.maxYaw
+            ]);
+
+            viewer.setPitchBounds([
+                bounds.minPitch,
+                bounds.maxPitch
+            ]);
+
+            if (viewer.getHfov() > bounds.maxHfov) {
+                viewer.setHfov(
+                    bounds.maxHfov,
+                    false
+                );
+            }
+
+            const safePitch = Math.max(
+                bounds.minPitch,
+                Math.min(
+                    bounds.maxPitch,
+                    viewer.getPitch()
+                )
+            );
+
+            if (
+                Math.abs(safePitch - viewer.getPitch()) > 0.01
+            ) {
+                viewer.setPitch(
+                    safePitch,
+                    false
+                );
+            }
+        }
+
+        async function initializePanorama() {
+            const firstConfig = await buildSceneConfig(
+                'nongdari_0'
+            );
+
+            viewer = pannellum.viewer('panorama', {
+                default: {
+                    firstScene: 'nongdari_0',
+                    sceneFadeDuration: 650,
+                    autoLoad: true,
+                    showZoomCtrl: true,
+                    mouseZoom: true,
+                    draggable: true,
+                    friction: 0.8
+                },
+                scenes: {
+                    nongdari_0: firstConfig
+                }
+            });
+
+            addedScenes.add('nongdari_0');
+
+            viewer.on('scenechange', sceneId => {
+                currentSceneId = sceneId;
+
+                updateNavigation(sceneId);
+                prefetchNextScene(sceneId);
+            });
+
+            viewer.on('load', () => {
+                navigationBusy = false;
+
+                updateNavigation(currentSceneId);
+                refreshZoomLimit();
+            });
+
+            viewer.on('error', message => {
+                console.error('Pannellum 오류:', message);
+
+                navigationBusy = false;
+                updateNavigation(currentSceneId);
+            });
+
+            updateNavigation('nongdari_0');
+            prefetchNextScene('nongdari_0');
+
+            window.addEventListener(
+                'resize',
+                refreshZoomLimit
+            );
+        }
+
+        initializePanorama().catch(error => {
+            console.error(
+                '파노라마 초기화 실패:',
+                error
+            );
+
+            alert(
+                '첫 번째 파노라마를 불러오지 못했습니다. HTML 파일과 사진 폴더의 위치를 확인해 주세요.'
+            );
+        });
     </script>
 </body>
 </html>
