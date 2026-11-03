@@ -12,6 +12,7 @@
         body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
         #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
 
+        /* 사이드바 메뉴 토글 버튼 */
         #menu-toggle-btn {
             position: absolute; top: 20px; left: 20px; z-index: 30;
             background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
@@ -23,7 +24,7 @@
         #sidebar {
             position: absolute; top: 70px; left: 20px; width: 260px;
             background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 20; backdrop-filter: blur(5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 30; backdrop-filter: blur(5px);
             transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease; transform-origin: top left;
         }
         #sidebar.collapsed { transform: translateX(-120%); opacity: 0; pointer-events: none; }
@@ -36,18 +37,18 @@
         .menu-item.active span { color: #555; }
 
         .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
-        
-        /* 커스텀 화살표 핫스팟 */
-        .custom-hotspot {
-            width: 70px !important; height: 70px !important; margin-left: -35px; margin-top: -35px;
-            background-color: rgba(255, 255, 255, 0.6); border-radius: 50%; color: #222; font-size: 35px;
-            display: flex !important; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); transform: perspective(300px) rotateX(60deg);
-            transition: all 0.2s ease; z-index: 2;
+
+        /* 🚀 화면에 완전히 고정되는 2D 이동 버튼 */
+        .nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.85); color: #222; font-weight: bold; font-size: 16px;
+            padding: 15px 25px; cursor: pointer; z-index: 20; border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.2s ease;
+            backdrop-filter: blur(3px); display: none; /* 스크립트에서 자동 표시 */
         }
-        .custom-hotspot::before { content: "▲"; margin-top: -5px; }
-        .custom-hotspot:hover { background-color: rgba(255, 255, 255, 1); transform: perspective(300px) rotateX(60deg) scale(1.2); box-shadow: 0 15px 30px rgba(0,0,0,0.7); }
-        .custom-hotspot .pnlm-tooltip { display: none !important; }
+        .nav-btn:hover { background-color: #fff; transform: translateY(-50%) scale(1.05); }
+        .nav-btn.left { left: 20px; }
+        .nav-btn.right { right: 20px; }
 
         /* 학생 참여형 모달(팝업) 디자인 */
         .modal {
@@ -60,7 +61,6 @@
         }
         .modal-content { width: 55%; height: 100%; object-fit: contain; background: #000; }
         
-        /* 오른쪽 인터랙티브 영역 (메모장 + 해설) */
         .modal-interactive { width: 45%; height: 100%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; overflow-y: auto; }
         .section-title { font-size: 18px; color: #f0c040; margin: 0 0 10px 0; font-weight: bold; }
         .section-desc { font-size: 14px; color: #ccc; margin: 0 0 15px 0; line-height: 1.4; }
@@ -68,7 +68,7 @@
         #userNote { width: 100%; height: 130px; resize: none; border-radius: 8px; padding: 15px; background: #fff; color: #222; font-family: inherit; font-size: 15px; border: none; outline: none; box-sizing: border-box; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         #userNote:disabled { background: #e0e0e0; color: #555; }
         
-        #verifyBtn { margin-top: 15px; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        #verifyBtn { margin-top: 15px; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         #verifyBtn:hover { background: #45a049; }
         
         #expertSection { margin-top: 25px; padding-top: 25px; border-top: 1px dashed #666; display: none; flex-direction: column; animation: fadeIn 0.5s ease-in-out; }
@@ -86,34 +86,33 @@
 
     <div id="sidebar" class="collapsed">
         <h2>🗺️ 어디로 이동할까요?</h2>
-        <div class="menu-item active" onclick="changeScene('nongdari_0', this)">
+        <div class="menu-item active" onclick="changeSceneViaMenu('nongdari_0', this)">
             1. 청주 천경대
             <span>마우스로 드래그하여 주변 둘러보기</span>
         </div>
-        <div class="menu-item" onclick="changeScene('chungseokgul_0', this)">
+        <div class="menu-item" onclick="changeSceneViaMenu('chungseokgul_0', this)">
             2. 청주 청석굴
             <span>절벽의 습곡과 층리 관찰</span>
         </div>
     </div>
 
+    <!-- 2D 고정 이동 버튼 -->
+    <div id="nav-prev" class="nav-btn left" onclick="goPrevScene()">◀ 이전 장소</div>
+    <div id="nav-next" class="nav-btn right" onclick="goNextScene()">다음 장소 ▶</div>
+
     <div id="panorama"></div>
 
-    <!-- 학생 참여형 모달(팝업) UI -->
     <div id="imageModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-wrapper">
             <img class="modal-content" id="modalImg">
-            
             <div class="modal-interactive">
-                <!-- 1단계: 관찰 노트 작성 구역 -->
                 <div id="notePadSection">
                     <h3 class="section-title">📝 나의 관찰 노트</h3>
                     <p class="section-desc">사진 속 노두의 특징을 관찰하고, 지질학적 형성 과정에 대한 가설을 세워보세요.</p>
                     <textarea id="userNote" placeholder="이곳에 특징과 가설을 작성하세요..."></textarea>
                     <button id="verifyBtn" onclick="verifyHypothesis()">✔️ 가설 검증 및 해설 보기</button>
                 </div>
-                
-                <!-- 2단계: 전문가 해설 구역 (초기엔 숨겨짐) -->
                 <div id="expertSection">
                     <h3 class="section-title">💡 전문가 해설</h3>
                     <div id="modalDesc"></div>
@@ -131,160 +130,109 @@
         var verifyBtn = document.getElementById("verifyBtn");
         var expertSection = document.getElementById("expertSection");
 
-        // 팝업 열기 (노트 및 해설 상태 초기화)
         function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
             modalImg.src = args.img;
             modalDesc.innerHTML = args.desc;
-            
-            // 학생이 새로운 사진을 볼 때마다 메모장을 깨끗하게 비우고 버튼을 다시 살림
             userNote.value = "";
             userNote.disabled = false;
             verifyBtn.style.display = "flex";
             expertSection.style.display = "none";
         }
-        
         function closeModal() { modal.style.display = "none"; }
 
-        // 가설 검증 버튼 클릭 시 실행되는 함수
         function verifyHypothesis() {
             if(userNote.value.trim() === "") {
                 alert("노두를 관찰하고 먼저 가설이나 특징을 작성해주세요!");
                 return;
             }
-            // 작성 완료 처리: 메모장 잠금, 버튼 숨김, 전문가 해설 공개
             userNote.disabled = true;
             verifyBtn.style.display = "none";
             expertSection.style.display = "flex";
         }
 
-        const commonSettings = {
-            "minHfov": 30, "maxHfov": 90, "hfov": 80, "friction": 0.8, "backgroundColor": [0, 0, 0] 
-        };
-
-        const horizontalSettings = {
-            "haov": 240, "vaov": 90, "minYaw": -115, "maxYaw": 115, "minPitch": -40, "maxPitch": 40
-        };
-
-        const NAV_PITCH = -20; 
-        const NAV_FWD = 0;
-        const NAV_BWD = 180;
+        const commonSettings = { "minHfov": 30, "maxHfov": 90, "hfov": 80, "friction": 0.8, "backgroundColor": [0, 0, 0] };
+        const horizontalSettings = { "haov": 240, "vaov": 90, "minYaw": -115, "maxYaw": 115, "minPitch": -40, "maxPitch": 40 };
 
         let viewer = pannellum.viewer('panorama', {
-            "default": {
-                "firstScene": "nongdari_0", 
-                "sceneFadeDuration": 1000, 
-                "autoLoad": true,
-                "showZoomCtrl": true,
-                "mouseZoom": true
-            },
+            "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true },
             "scenes": {
-                /* ==========================================
-                   1. 청주 천경대 (변수명은 유지하되 표기만 변경)
-                   ========================================== */
+                // 천경대 핫스팟 (이동 화살표 삭제, 상세 사진 돋보기만 유지)
                 "nongdari_0": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>고생대 천매암층</h3><p>이곳에 천경대 지질학적 전문가 해설을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" }
-                    ]
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
+                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>고생대 천매암층</h3><p>이곳에 천경대 지질학적 전문가 해설을 적어주세요.</p>" } }]
                 }),
-                
                 "nongdari_1": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_1.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>천경대 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" }
-                    ]
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background_1.jpg", 
+                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>천경대 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
                 }),
+                "nongdari_2": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg" }),
+                "nongdari_3": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
+                "nongdari_4": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "nongdari/nongdari_background_4.jpg" }),
 
-                "nongdari_2": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_2.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "nongdari_3": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_3.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "nongdari_4", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "nongdari_4": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "nongdari/nongdari_background_4.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "nongdari_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                /* ==========================================
-                   2. 청주 청석굴 동선 
-                   ========================================== */
+                // 청석굴 핫스팟
                 "chungseokgul_0": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" }
-                    ]
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg", 
+                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
                 }),
-
                 "chungseokgul_1": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
-                    "hotSpots": [
-                        { "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_0", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" }
-                    ]
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
+                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
                 }),
-
-                "chungseokgul_2": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_2.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_1", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_3": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_3.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_2", "cssClass": "custom-hotspot" },
-                        { "pitch": NAV_PITCH, "yaw": NAV_FWD, "type": "scene", "sceneId": "chungseokgul_4", "cssClass": "custom-hotspot" }
-                    ]
-                }),
-
-                "chungseokgul_4": Object.assign({}, commonSettings, horizontalSettings, {
-                    "type": "equirectangular",
-                    "panorama": "chungseokgul/chungseokgul_background_4.jpg", 
-                    "hotSpots": [
-                        { "pitch": NAV_PITCH, "yaw": NAV_BWD, "type": "scene", "sceneId": "chungseokgul_3", "cssClass": "custom-hotspot" }
-                    ]
-                })
+                "chungseokgul_2": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_2.jpg" }),
+                "chungseokgul_3": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_3.jpg" }),
+                "chungseokgul_4": Object.assign({}, commonSettings, horizontalSettings, { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_4.jpg" })
             }
         });
 
-        function changeScene(sceneId, element) {
+        // 🚀 장면 흐름(내비게이션) 데이터 매핑
+        const sceneFlow = {
+            "nongdari_0": { prev: null, next: "nongdari_1" },
+            "nongdari_1": { prev: "nongdari_0", next: "nongdari_2" },
+            "nongdari_2": { prev: "nongdari_1", next: "nongdari_3" },
+            "nongdari_3": { prev: "nongdari_2", next: "nongdari_4" },
+            "nongdari_4": { prev: "nongdari_3", next: null },
+            
+            "chungseokgul_0": { prev: null, next: "chungseokgul_1" },
+            "chungseokgul_1": { prev: "chungseokgul_0", next: "chungseokgul_2" },
+            "chungseokgul_2": { prev: "chungseokgul_1", next: "chungseokgul_3" },
+            "chungseokgul_3": { prev: "chungseokgul_2", next: "chungseokgul_4" },
+            "chungseokgul_4": { prev: "chungseokgul_3", next: null }
+        };
+
+        let currentSceneId = "nongdari_0";
+
+        // 버튼 표시/숨김 업데이트 함수
+        function updateNavButtons(sceneId) {
+            currentSceneId = sceneId;
+            let flow = sceneFlow[sceneId];
+            document.getElementById("nav-prev").style.display = flow.prev ? "flex" : "none";
+            document.getElementById("nav-next").style.display = flow.next ? "flex" : "none";
+        }
+
+        // 이전/다음 버튼 클릭 동작
+        function goPrevScene() {
+            let prevId = sceneFlow[currentSceneId].prev;
+            if(prevId) { viewer.loadScene(prevId); updateNavButtons(prevId); }
+        }
+        function goNextScene() {
+            let nextId = sceneFlow[currentSceneId].next;
+            if(nextId) { viewer.loadScene(nextId); updateNavButtons(nextId); }
+        }
+
+        // 사이드바 클릭 동작
+        function changeSceneViaMenu(sceneId, element) {
             viewer.loadScene(sceneId);
+            updateNavButtons(sceneId);
             let items = document.getElementsByClassName('menu-item');
-            for (let i = 0; i < items.length; i++) {
-                items[i].classList.remove('active');
-            }
+            for (let i = 0; i < items.length; i++) items[i].classList.remove('active');
             element.classList.add('active');
         }
+
+        // 초기 로딩 시 버튼 세팅
+        window.onload = function() {
+            updateNavButtons("nongdari_0");
+        };
     </script>
 </body>
 </html>
