@@ -250,6 +250,47 @@
             return Object.assign({}, commonSettings, getSceneSettings(sceneId));
         }
 
+        /* ======================================================
+           청석굴 배경 3번: 위치 표시 PNG의 6개 색상 점을
+           원본 배경(2048×578) 기준 Pannellum ⓘ 핫스팟으로 변환.
+
+           기존 v14에서 사용한 연결 순서를 유지합니다:
+           빨강→1, 주황→2, 노랑→3, 초록→4, 하늘→12, 파랑→13.
+           삭제한 세부 사진 5~9번은 참조하지 않습니다.
+           색상 표시 PNG를 GitHub에 올릴 필요는 없습니다.
+           ====================================================== */
+        const CHUNGSEOKGUL_3_MARKERS = [
+            { color: "빨간색", number:  1, x: 1132, y: 320 },
+            { color: "주황색", number:  2, x: 1156, y: 163 },
+            { color: "노란색", number:  3, x:  965, y: 256 },
+            { color: "초록색", number:  4, x: 1011, y: 312 },
+            { color: "하늘색", number: 12, x:  859, y: 176 },
+            { color: "파란색", number: 13, x: 1290, y: 365 }
+        ];
+
+        function makeChungseokgul3HotSpot(marker) {
+            const { haov, vaov, vOffset } = getSceneSettings("chungseokgul_3");
+            const imageWidth = 2048;
+            const imageHeight = 578;
+
+            // 이미지 내 점의 위치를 부분 파노라마의 회전 좌표로 변환
+            const yaw = (marker.x / imageWidth - 0.5) * haov;
+            const pitch = (0.5 - marker.y / imageHeight) * vaov + vOffset;
+
+            return {
+                type: "info", // Pannellum 기본 ⓘ 버튼
+                pitch: Number(pitch.toFixed(3)),
+                yaw: Number(yaw.toFixed(3)),
+                text: `청석굴 세부 사진 ${marker.number}번`,
+                clickHandlerFunc: showImagePopup,
+                clickHandlerArgs: {
+                    img: `chungseokgul/chungseokgul_${marker.number}.jpg`,
+                    desc: `<h3>청석굴 세부 사진 ${marker.number}번</h3>` +
+                          `<p>이곳에 해당 지질 구조의 해설을 작성해주세요.</p>`
+                }
+            };
+        }
+
         let viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true, "hotSpotDebug": true },
             "scenes": {
@@ -273,7 +314,11 @@
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
                 }),
                 "chungseokgul_2": Object.assign({}, sceneSettings("chungseokgul_2"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_2.jpg" }),
-                "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_3.jpg" })
+                "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_3.jpg",
+                    "hotSpots": CHUNGSEOKGUL_3_MARKERS.map(makeChungseokgul3HotSpot)
+                })
             }
         });
 
