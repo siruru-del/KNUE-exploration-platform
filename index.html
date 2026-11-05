@@ -28,9 +28,9 @@
         }
         #signpost-btn:hover { background-color: rgba(70, 70, 70, 0.9); transform: scale(1.05); }
 
-        /* 📍 보고서 다운로드 버튼 위치 겹치지 않게 수정 (right: 160px) */
+        /* 📍 보고서 다운로드 버튼을 안내판 버튼 아래로 이동 (top: 70px, right: 20px) */
         #download-btn {
-            position: absolute; top: 20px; right: 160px; z-index: 30;
+            position: absolute; top: 70px; right: 20px; z-index: 30;
             background-color: rgba(46, 139, 87, 0.85); color: #fff; padding: 12px 18px;
             border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
@@ -69,12 +69,9 @@
         .nav-btn.left { left: calc(50% - 91px); }
         .nav-btn.right { left: 50%; }
         
-        /* 📍 모바일 화면 대응 버튼 위치 조정 */
         @media (max-width: 600px) {
             .nav-btn { width: 64px; height: 52px; font-size: 27px; }
             .nav-btn.left { left: calc(50% - 78px); }
-            /* 보고서 버튼이 안내판 버튼 아래에 위치하도록 70px로 이동 */
-            #download-btn { top: 70px; right: 20px; }
         }
 
         .modal {
