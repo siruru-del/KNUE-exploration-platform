@@ -119,7 +119,6 @@
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-wrapper">
             <img class="modal-content" id="modalImg">
-            <!-- 📍 우측 영역에 ID(modalInteractive) 부여 -->
             <div class="modal-interactive" id="modalInteractive">
                 <div id="notePadSection">
                     <h3 class="section-title">📝 나의 관찰 노트</h3>
@@ -147,8 +146,6 @@
 
         function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
-            
-            // 일반 노두 핫스팟 클릭 시: 우측 영역 표시하고 사진 비율 55%로 원상복구
             modalInteractive.style.display = "flex";
             modalImg.style.width = "55%";
             
@@ -162,8 +159,6 @@
 
         function showSignpost() {
             modal.style.display = "block";
-            
-            // 📍 안내판 버튼 클릭 시: 우측 영역 전체를 숨기고 사진을 100%로 확장
             modalInteractive.style.display = "none";
             modalImg.style.width = "100%";
 
@@ -250,15 +245,6 @@
             return Object.assign({}, commonSettings, getSceneSettings(sceneId));
         }
 
-        /* ======================================================
-           청석굴 배경 3번: 위치 표시 PNG의 6개 색상 점을
-           원본 배경(2048×578) 기준 Pannellum ⓘ 핫스팟으로 변환.
-
-           기존 v14에서 사용한 연결 순서를 유지합니다:
-           빨강→1, 주황→2, 노랑→3, 초록→4, 하늘→12, 파랑→13.
-           삭제한 세부 사진 5~9번은 참조하지 않습니다.
-           색상 표시 PNG를 GitHub에 올릴 필요는 없습니다.
-           ====================================================== */
         const CHUNGSEOKGUL_3_MARKERS = [
             { color: "빨간색", number:  1, x: 1132, y: 320 },
             { color: "주황색", number:  2, x: 1156, y: 163 },
@@ -273,20 +259,18 @@
             const imageWidth = 2048;
             const imageHeight = 578;
 
-            // 이미지 내 점의 위치를 부분 파노라마의 회전 좌표로 변환
             const yaw = (marker.x / imageWidth - 0.5) * haov;
             const pitch = (0.5 - marker.y / imageHeight) * vaov + vOffset;
 
             return {
-                type: "info", // Pannellum 기본 ⓘ 버튼
+                type: "info",
                 pitch: Number(pitch.toFixed(3)),
                 yaw: Number(yaw.toFixed(3)),
                 text: `청석굴 세부 사진 ${marker.number}번`,
                 clickHandlerFunc: showImagePopup,
                 clickHandlerArgs: {
                     img: `chungseokgul/chungseokgul_${marker.number}.jpg`,
-                    desc: `<h3>청석굴 세부 사진 ${marker.number}번</h3>` +
-                          `<p>이곳에 해당 지질 구조의 해설을 작성해주세요.</p>`
+                    desc: `<h3>청석굴 세부 사진 ${marker.number}번</h3><p>이곳에 해당 지질 구조의 해설을 작성해주세요.</p>`
                 }
             };
         }
@@ -294,24 +278,39 @@
         let viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true, "hotSpotDebug": true },
             "scenes": {
+                // 천경대 0번: 1번, 5번 사진 추가
                 "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
-                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>고생대 천매암층</h3><p>이곳에 천경대 지질학적 전문가 해설을 적어주세요.</p>" } }]
+                    "hotSpots": [
+                        { "pitch": -4.00, "yaw": -12.79, "type": "info", "text": "천경대 세부 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>천경대 세부 1</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -3.92, "yaw": -18.30, "type": "info", "text": "천경대 세부 5", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_5.jpg", "desc": "<h3>천경대 세부 5</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
                 }),
+                // 천경대 1번: 2번, 7번 사진 추가
                 "nongdari_1": Object.assign({}, sceneSettings("nongdari_1"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background_1.jpg", 
-                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>천경대 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
+                    "hotSpots": [
+                        { "pitch": 2.76, "yaw": -9.70, "type": "info", "text": "천경대 세부 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>천경대 세부 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": 0.90, "yaw": 11.28, "type": "info", "text": "천경대 세부 7", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_7.jpg", "desc": "<h3>천경대 세부 7</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
                 }),
-                "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg" }),
+                // 천경대 2번: 3번, 4번, 6번 사진 추가
+                "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { 
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg",
+                    "hotSpots": [
+                        { "pitch": -9.35, "yaw": -24.77, "type": "info", "text": "천경대 세부 3", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_3.jpg", "desc": "<h3>천경대 세부 3</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -8.97, "yaw": -6.37, "type": "info", "text": "천경대 세부 4", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_4.jpg", "desc": "<h3>천경대 세부 4</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -11.05, "yaw": 20.12, "type": "info", "text": "천경대 세부 6", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_6.jpg", "desc": "<h3>천경대 세부 6</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
+                }),
                 "nongdari_3": Object.assign({}, sceneSettings("nongdari_3"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
 
+                // 청석굴 0번, 1번: 기존 세부 사진 i 마커 삭제
                 "chungseokgul_0": Object.assign({}, sceneSettings("chungseokgul_0"), {
-                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg", 
-                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg"
                 }),
                 "chungseokgul_1": Object.assign({}, sceneSettings("chungseokgul_1"), {
-                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_1.jpg", 
-                    "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_1.jpg"
                 }),
                 "chungseokgul_2": Object.assign({}, sceneSettings("chungseokgul_2"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_2.jpg" }),
                 "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), {
