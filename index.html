@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>교원대 원격답사 플랫폼</title>
+    <title>충북 지질 원격답사 플랫폼</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -27,6 +27,15 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
         }
         #signpost-btn:hover { background-color: rgba(70, 70, 70, 0.9); transform: scale(1.05); }
+
+        /* 📍 보고서 다운로드 버튼 추가 */
+        #download-btn {
+            position: absolute; top: 20px; right: 160px; z-index: 30;
+            background-color: rgba(46, 139, 87, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #download-btn:hover { background-color: rgba(60, 179, 113, 0.9); transform: scale(1.05); }
 
         #sidebar {
             position: absolute; top: 70px; left: 20px; width: 260px;
@@ -62,6 +71,7 @@
         @media (max-width: 600px) {
             .nav-btn { width: 64px; height: 52px; font-size: 27px; }
             .nav-btn.left { left: calc(50% - 78px); }
+            #download-btn { top: 70px; right: 20px; }
         }
 
         .modal {
@@ -96,6 +106,7 @@
 <body>
 
     <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
+    <div id="download-btn" onclick="downloadReport()">💾 보고서 다운로드</div>
     <div id="signpost-btn" onclick="showSignpost()">🗺️ 안내판 보기</div>
 
     <div id="sidebar" class="collapsed">
@@ -144,6 +155,10 @@
         var verifyBtn = document.getElementById("verifyBtn");
         var expertSection = document.getElementById("expertSection");
 
+        // 📍 데이터 저장을 위한 변수
+        let currentPopupImg = "";
+        let currentPopupTitle = "";
+
         function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
             modalInteractive.style.display = "flex";
@@ -151,10 +166,27 @@
             
             modalImg.src = args.img;
             modalDesc.innerHTML = args.desc;
-            userNote.value = "";
-            userNote.disabled = false;
-            verifyBtn.style.display = "flex";
-            expertSection.style.display = "none";
+            
+            // 현재 열린 팝업의 정보(이미지 경로 및 제목) 기록
+            currentPopupImg = args.img;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = args.desc;
+            currentPopupTitle = tempDiv.querySelector('h3') ? tempDiv.querySelector('h3').innerText : '관찰 지점';
+
+            // 📍 임시 저장소에 저장된 기록이 있는지 확인하고 불러오기
+            const savedNote = localStorage.getItem("geo_note_" + currentPopupImg);
+            
+            if (savedNote) {
+                userNote.value = savedNote;
+                userNote.disabled = true;
+                verifyBtn.style.display = "none";
+                expertSection.style.display = "flex";
+            } else {
+                userNote.value = "";
+                userNote.disabled = false;
+                verifyBtn.style.display = "flex";
+                expertSection.style.display = "none";
+            }
         }
 
         function showSignpost() {
@@ -176,9 +208,63 @@
                 alert("노두를 관찰하고 먼저 가설이나 특징을 작성해주세요!");
                 return;
             }
+            
+            // 📍 작성 완료 시 브라우저 로컬 저장소에 가설 내용과 장소 제목 저장
+            localStorage.setItem("geo_note_" + currentPopupImg, userNote.value);
+            localStorage.setItem("geo_title_" + currentPopupImg, currentPopupTitle);
+
             userNote.disabled = true;
             verifyBtn.style.display = "none";
             expertSection.style.display = "flex";
+        }
+
+        // 📍 학생이 작성한 관찰 노트들을 텍스트 파일로 추출하는 기능
+        function downloadReport() {
+            let reportContent = "🌍 충북 지질 원격답사 관찰 보고서\n=========================================\n\n";
+            let hasNotes = false;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith("geo_note_")) {
+                    hasNotes = true;
+                    let imgPath = key.replace("geo_note_", "");
+                    let note = localStorage.getItem(key);
+                    let title = localStorage.getItem("geo_title_" + imgPath) || "세부 관찰 지점";
+                    
+                    reportContent += `📍 관찰 위치: ${title}\n`;
+                    reportContent += `📝 나의 가설 및 관찰 내용:\n${note}\n`;
+                    reportContent += `-----------------------------------------\n\n`;
+                }
+            }
+            
+            if (!hasNotes) {
+                alert("아직 작성된 관찰 노트가 없습니다. 노두를 관찰하고 가설을 먼저 작성해 주세요!");
+                return;
+            }
+            
+            // 텍스트 파일 생성 및 다운로드 트리거
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '지질답사_관찰보고서.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // 다운로드 완료 후 기록 초기화 여부 확인
+            if(confirm("보고서 다운로드가 완료되었습니다.\n새로운 답사를 위해 저장된 기록을 초기화하시겠습니까?")) {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    if (key.startsWith("geo_note_") || key.startsWith("geo_title_")) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                alert("기록이 성공적으로 초기화되었습니다.");
+            }
         }
 
         const photoProfiles = {
@@ -278,7 +364,6 @@
         let viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true, "hotSpotDebug": true },
             "scenes": {
-                // 천경대 0번: 1번, 5번 사진 추가
                 "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
                     "hotSpots": [
@@ -286,7 +371,6 @@
                         { "pitch": -3.92, "yaw": -18.30, "type": "info", "text": "천경대 세부 5", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_5.jpg", "desc": "<h3>천경대 세부 5</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
                     ]
                 }),
-                // 천경대 1번: 2번, 7번 사진 추가
                 "nongdari_1": Object.assign({}, sceneSettings("nongdari_1"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background_1.jpg", 
                     "hotSpots": [
@@ -294,7 +378,6 @@
                         { "pitch": 0.90, "yaw": 11.28, "type": "info", "text": "천경대 세부 7", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_7.jpg", "desc": "<h3>천경대 세부 7</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
                     ]
                 }),
-                // 천경대 2번: 3번, 4번, 6번 사진 추가
                 "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { 
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg",
                     "hotSpots": [
@@ -305,7 +388,6 @@
                 }),
                 "nongdari_3": Object.assign({}, sceneSettings("nongdari_3"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
 
-                // 청석굴 0번, 1번: 기존 세부 사진 i 마커 삭제
                 "chungseokgul_0": Object.assign({}, sceneSettings("chungseokgul_0"), {
                     "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg"
                 }),
