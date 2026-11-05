@@ -12,7 +12,6 @@
         body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
         #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
 
-        /* 사이드바 메뉴 토글 버튼 */
         #menu-toggle-btn {
             position: absolute; top: 20px; left: 20px; z-index: 30;
             background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
@@ -21,7 +20,6 @@
         }
         #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
 
-        /* 📍 우측 상단 안내판 보기 버튼 추가 */
         #signpost-btn {
             position: absolute; top: 20px; right: 20px; z-index: 30;
             background-color: rgba(40, 40, 40, 0.85); color: #fff; padding: 12px 18px;
@@ -47,25 +45,13 @@
 
         .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
 
-        /* 구글 스트리트 뷰처럼 화면 중앙 아래에 고정된 입체형 이동 화살표 */
         .nav-btn {
-            position: fixed;
-            top: 68%;
-            width: 72px;
-            height: 58px;
-            padding: 0;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid rgba(255,255,255,0.85);
-            border-radius: 50%;
-            background-color: rgba(255,255,255,0.85);
-            color: #222;
-            font-size: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 60;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            backdrop-filter: blur(3px);
+            position: fixed; top: 68%; width: 72px; height: 58px; padding: 0;
+            align-items: center; justify-content: center;
+            border: 2px solid rgba(255,255,255,0.85); border-radius: 50%;
+            background-color: rgba(255,255,255,0.85); color: #222;
+            font-size: 30px; font-weight: bold; cursor: pointer; z-index: 60;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5); backdrop-filter: blur(3px);
             transform: translate(-50%, -50%) perspective(350px) rotateX(48deg);
             transition: background-color 0.2s ease, box-shadow 0.2s ease;
             display: none; 
@@ -78,7 +64,6 @@
             .nav-btn.left { left: calc(50% - 78px); }
         }
 
-        /* 학생 참여형 모달(팝업) 디자인 */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
             background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
@@ -87,7 +72,7 @@
             display: flex; margin: auto; width: 90%; max-width: 1200px; height: 75vh; position: relative; top: 50%; transform: translateY(-50%);
             background-color: #2a2a2a; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden;
         }
-        .modal-content { width: 55%; height: 100%; object-fit: contain; background: #000; }
+        .modal-content { width: 55%; height: 100%; object-fit: contain; background: #000; transition: width 0.3s ease; }
         
         .modal-interactive { width: 45%; height: 100%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; overflow-y: auto; }
         .section-title { font-size: 18px; color: #f0c040; margin: 0 0 10px 0; font-weight: bold; }
@@ -111,8 +96,6 @@
 <body>
 
     <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
-    
-    <!-- 📍 안내판 버튼 추가 -->
     <div id="signpost-btn" onclick="showSignpost()">🗺️ 안내판 보기</div>
 
     <div id="sidebar" class="collapsed">
@@ -127,10 +110,8 @@
         </div>
     </div>
 
-    <button id="nav-prev" class="nav-btn left" type="button"
-            onclick="goPrevScene()" title="이전 장소" aria-label="이전 장소">◀</button>
-    <button id="nav-next" class="nav-btn right" type="button"
-            onclick="goNextScene()" title="다음 장소" aria-label="다음 장소">▲</button>
+    <button id="nav-prev" class="nav-btn left" type="button" onclick="goPrevScene()" title="이전 장소">◀</button>
+    <button id="nav-next" class="nav-btn right" type="button" onclick="goNextScene()" title="다음 장소">▲</button>
 
     <div id="panorama"></div>
 
@@ -138,7 +119,8 @@
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-wrapper">
             <img class="modal-content" id="modalImg">
-            <div class="modal-interactive">
+            <!-- 📍 우측 영역에 ID(modalInteractive) 부여 -->
+            <div class="modal-interactive" id="modalInteractive">
                 <div id="notePadSection">
                     <h3 class="section-title">📝 나의 관찰 노트</h3>
                     <p class="section-desc">사진 속 노두의 특징을 관찰하고, 지질학적 형성 과정에 대한 가설을 세워보세요.</p>
@@ -157,6 +139,7 @@
         function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed"); }
         var modal = document.getElementById("imageModal");
         var modalImg = document.getElementById("modalImg");
+        var modalInteractive = document.getElementById("modalInteractive");
         var modalDesc = document.getElementById("modalDesc");
         var userNote = document.getElementById("userNote");
         var verifyBtn = document.getElementById("verifyBtn");
@@ -164,6 +147,11 @@
 
         function showImagePopup(hotSpotDiv, args) {
             modal.style.display = "block";
+            
+            // 일반 노두 핫스팟 클릭 시: 우측 영역 표시하고 사진 비율 55%로 원상복구
+            modalInteractive.style.display = "flex";
+            modalImg.style.width = "55%";
+            
             modalImg.src = args.img;
             modalDesc.innerHTML = args.desc;
             userNote.value = "";
@@ -172,22 +160,17 @@
             expertSection.style.display = "none";
         }
 
-        // 📍 표지판 전용 팝업 함수 (가설 작성 생략)
         function showSignpost() {
             modal.style.display = "block";
             
-            // 안내판은 가설 검증이 필요 없으므로 메모장을 비활성화하고 해설 영역을 바로 띄움
-            userNote.value = "※ 안내판은 가설 검증 없이 바로 열람할 수 있습니다.";
-            userNote.disabled = true;
-            verifyBtn.style.display = "none";
-            expertSection.style.display = "flex";
+            // 📍 안내판 버튼 클릭 시: 우측 영역 전체를 숨기고 사진을 100%로 확장
+            modalInteractive.style.display = "none";
+            modalImg.style.width = "100%";
 
             if (currentSceneId.includes("nongdari")) {
                 modalImg.src = "nongdari/nongdari_background_4.jpg";
-                modalDesc.innerHTML = "<h3>천경대 안내판</h3><p>천경대의 지질학적 정보를 담은 현장 안내판입니다.</p>";
             } else {
                 modalImg.src = "chungseokgul/chungseokgul_background_4.jpg";
-                modalDesc.innerHTML = "<h3>청석굴 안내판</h3><p>청석굴의 지질학적 정보를 담은 현장 안내판입니다.</p>";
             }
         }
 
@@ -270,7 +253,6 @@
         let viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true },
             "scenes": {
-                // 천경대 핫스팟 (4번 사진 배경 삭제)
                 "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>고생대 천매암층</h3><p>이곳에 천경대 지질학적 전문가 해설을 적어주세요.</p>" } }]
@@ -282,7 +264,6 @@
                 "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg" }),
                 "nongdari_3": Object.assign({}, sceneSettings("nongdari_3"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
 
-                // 청석굴 핫스팟 (4번 사진 배경 삭제)
                 "chungseokgul_0": Object.assign({}, sceneSettings("chungseokgul_0"), {
                     "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
@@ -296,7 +277,6 @@
             }
         });
 
-        // 🚀 장면 흐름 (4번 씬 연결 고리 해제)
         const sceneFlow = {
             "nongdari_0": { prev: null, next: "nongdari_1" },
             "nongdari_1": { prev: "nongdari_0", next: "nongdari_2" },
