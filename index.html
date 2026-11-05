@@ -21,6 +21,15 @@
         }
         #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
 
+        /* 📍 우측 상단 안내판 보기 버튼 추가 */
+        #signpost-btn {
+            position: absolute; top: 20px; right: 20px; z-index: 30;
+            background-color: rgba(40, 40, 40, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #signpost-btn:hover { background-color: rgba(70, 70, 70, 0.9); transform: scale(1.05); }
+
         #sidebar {
             position: absolute; top: 70px; left: 20px; width: 260px;
             background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
@@ -59,7 +68,7 @@
             backdrop-filter: blur(3px);
             transform: translate(-50%, -50%) perspective(350px) rotateX(48deg);
             transition: background-color 0.2s ease, box-shadow 0.2s ease;
-            display: none; /* updateNavButtons()에서 flex로 표시 */
+            display: none; 
         }
         .nav-btn:hover { background-color: #fff; box-shadow: 0 12px 25px rgba(0,0,0,0.6); }
         .nav-btn.left { left: calc(50% - 91px); }
@@ -102,6 +111,9 @@
 <body>
 
     <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
+    
+    <!-- 📍 안내판 버튼 추가 -->
+    <div id="signpost-btn" onclick="showSignpost()">🗺️ 안내판 보기</div>
 
     <div id="sidebar" class="collapsed">
         <h2>🗺️ 어디로 이동할까요?</h2>
@@ -115,7 +127,6 @@
         </div>
     </div>
 
-    <!-- 화면 중앙 아래에 고정된 이전 / 다음 이동 화살표 -->
     <button id="nav-prev" class="nav-btn left" type="button"
             onclick="goPrevScene()" title="이전 장소" aria-label="이전 장소">◀</button>
     <button id="nav-next" class="nav-btn right" type="button"
@@ -160,6 +171,26 @@
             verifyBtn.style.display = "flex";
             expertSection.style.display = "none";
         }
+
+        // 📍 표지판 전용 팝업 함수 (가설 작성 생략)
+        function showSignpost() {
+            modal.style.display = "block";
+            
+            // 안내판은 가설 검증이 필요 없으므로 메모장을 비활성화하고 해설 영역을 바로 띄움
+            userNote.value = "※ 안내판은 가설 검증 없이 바로 열람할 수 있습니다.";
+            userNote.disabled = true;
+            verifyBtn.style.display = "none";
+            expertSection.style.display = "flex";
+
+            if (currentSceneId.includes("nongdari")) {
+                modalImg.src = "nongdari/nongdari_background_4.jpg";
+                modalDesc.innerHTML = "<h3>천경대 안내판</h3><p>천경대의 지질학적 정보를 담은 현장 안내판입니다.</p>";
+            } else {
+                modalImg.src = "chungseokgul/chungseokgul_background_4.jpg";
+                modalDesc.innerHTML = "<h3>청석굴 안내판</h3><p>청석굴의 지질학적 정보를 담은 현장 안내판입니다.</p>";
+            }
+        }
+
         function closeModal() { modal.style.display = "none"; }
 
         function verifyHypothesis() {
@@ -172,8 +203,6 @@
             expertSection.style.display = "flex";
         }
 
-        // 원본 사진의 비율을 기준으로 한 보정표. 실제 촬영 화각은 없으므로 haov는 추정값입니다.
-        // 가로폭이 짧은 사진은 240도가 아닌 약 82도로 해석해 과한 구면 굴곡을 줄입니다.
         const photoProfiles = {
             nongdari_0:     { width: 2048, height: 786,  haov: 142, type: "wide" },
             nongdari_1:     { width: 2048, height: 1476, haov: 82,  type: "short" },
@@ -183,7 +212,6 @@
             chungseokgul_1: { width: 1536, height: 2048, vaov: 84,  type: "portrait" },
             chungseokgul_2: { width: 1536, height: 2048, vaov: 84,  type: "portrait" },
             chungseokgul_3: { width: 2048, height: 578,  haov: 164, type: "wide" }
-            // _4 사진 두 장은 아직 원본 크기를 모르므로 아래 기본 설정을 사용합니다.
         };
 
         const commonSettings = {
@@ -196,7 +224,6 @@
             avoidShowingBackground: true
         };
 
-        // 아직 전달되지 않은 두 장에만 적용할 임시 기본값.
         const fallbackProfile = { width: 2400, height: 900, haov: 180, type: "wide" };
 
         function getSceneSettings(sceneId) {
@@ -205,7 +232,6 @@
             const haov = p.haov || p.vaov * ratio;
             const vaov = p.vaov || haov / ratio;
 
-            // 모니터가 좁거나 세로로 회전된 경우에도 사진 밖으로 줌아웃하지 않도록 계산.
             const aspect = Math.max(0.25, window.innerWidth / Math.max(1, window.innerHeight));
             const margin = 4;
             const verticalSafe = Math.max(5, vaov - margin * 2);
@@ -213,18 +239,14 @@
                 Math.tan(verticalSafe * Math.PI / 360) * aspect
             ) * 180 / Math.PI;
 
-            // 좌측 끝에서 검은 영역이 나타나지 않도록 촬영 범위 안쪽에 작은 여유를 둡니다.
-            // 오른쪽도 소폭 제한하지만 다른 줌 / 드래그 설정은 그대로 유지합니다.
-            const LEFT_EDGE_MARGIN = 5;  // 좌측 사진 끝보다 5도 안쪽
-            const RIGHT_EDGE_MARGIN = 4; // 우측 사진 끝보다 4도 안쪽
+            const LEFT_EDGE_MARGIN = 5;  
+            const RIGHT_EDGE_MARGIN = 4; 
 
             const cap = p.type === "portrait" ? 54 : (p.type === "short" ? 78 : 80);
-            // 확대를 끝까지 푼 상태에서도 좌우 안전 여백을 넘지 않게 합니다.
             const horizontalSafe = Math.max(5, haov - LEFT_EDGE_MARGIN - RIGHT_EDGE_MARGIN);
             const maxHfov = Math.max(5, Math.min(cap, horizontalSafe, maxByHeight));
             const minHfov = Math.min(30, maxHfov * 0.48);
 
-            // '짧은 가로' 사진은 전체의 넓은 부분을 보이도록 시작하면서도 드래그 여유를 둡니다.
             const hfov = p.type === "short"
                 ? Math.min(maxHfov, maxHfov * 0.93)
                 : p.type === "portrait"
@@ -248,7 +270,7 @@
         let viewer = pannellum.viewer('panorama', {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true },
             "scenes": {
-                // 천경대 핫스팟 (이동 화살표 삭제, 상세 사진 돋보기만 유지)
+                // 천경대 핫스팟 (4번 사진 배경 삭제)
                 "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
                     "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "천경대 상세 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_1.jpg", "desc": "<h3>고생대 천매암층</h3><p>이곳에 천경대 지질학적 전문가 해설을 적어주세요.</p>" } }]
@@ -259,9 +281,8 @@
                 }),
                 "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg" }),
                 "nongdari_3": Object.assign({}, sceneSettings("nongdari_3"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
-                "nongdari_4": Object.assign({}, sceneSettings("nongdari_4"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_4.jpg" }),
 
-                // 청석굴 핫스팟
+                // 청석굴 핫스팟 (4번 사진 배경 삭제)
                 "chungseokgul_0": Object.assign({}, sceneSettings("chungseokgul_0"), {
                     "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg", 
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 1", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_1.jpg", "desc": "<h3>청석굴 노두</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
@@ -271,29 +292,25 @@
                     "hotSpots": [{ "pitch": 5, "yaw": -10, "type": "info", "text": "청석굴 암벽 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "chungseokgul/chungseokgul_2.jpg", "desc": "<h3>청석굴 단면</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }]
                 }),
                 "chungseokgul_2": Object.assign({}, sceneSettings("chungseokgul_2"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_2.jpg" }),
-                "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_3.jpg" }),
-                "chungseokgul_4": Object.assign({}, sceneSettings("chungseokgul_4"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_4.jpg" })
+                "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_3.jpg" })
             }
         });
 
-        // 🚀 장면 흐름(내비게이션) 데이터 매핑
+        // 🚀 장면 흐름 (4번 씬 연결 고리 해제)
         const sceneFlow = {
             "nongdari_0": { prev: null, next: "nongdari_1" },
             "nongdari_1": { prev: "nongdari_0", next: "nongdari_2" },
             "nongdari_2": { prev: "nongdari_1", next: "nongdari_3" },
-            "nongdari_3": { prev: "nongdari_2", next: "nongdari_4" },
-            "nongdari_4": { prev: "nongdari_3", next: null },
+            "nongdari_3": { prev: "nongdari_2", next: null },
             
             "chungseokgul_0": { prev: null, next: "chungseokgul_1" },
             "chungseokgul_1": { prev: "chungseokgul_0", next: "chungseokgul_2" },
             "chungseokgul_2": { prev: "chungseokgul_1", next: "chungseokgul_3" },
-            "chungseokgul_3": { prev: "chungseokgul_2", next: "chungseokgul_4" },
-            "chungseokgul_4": { prev: "chungseokgul_3", next: null }
+            "chungseokgul_3": { prev: "chungseokgul_2", next: null }
         };
 
         let currentSceneId = "nongdari_0";
 
-        // 버튼 표시/숨김 업데이트 함수
         function updateNavButtons(sceneId) {
             currentSceneId = sceneId;
             let flow = sceneFlow[sceneId];
@@ -301,7 +318,6 @@
             document.getElementById("nav-next").style.display = flow.next ? "flex" : "none";
         }
 
-        // 사진을 이동할 때 직전 사진의 확대/회전 값이 넘어가지 않도록 매번 재설정합니다.
         function moveToScene(sceneId) {
             const settings = getSceneSettings(sceneId);
             viewer.loadScene(sceneId, 0, 0, settings.hfov);
@@ -318,7 +334,6 @@
             if (nextId) moveToScene(nextId);
         }
 
-        // 사이드바 클릭 동작 (관찰 노트 등 나머지 동작은 원본과 동일)
         function changeSceneViaMenu(sceneId, element) {
             moveToScene(sceneId);
             const items = document.getElementsByClassName('menu-item');
@@ -326,7 +341,6 @@
             element.classList.add('active');
         }
 
-        // 화면 비율 변경 시 줌아웃과 탐색 범위를 재계산합니다.
         function refreshViewBounds() {
             if (!viewer) return;
             viewer.resize();
@@ -343,7 +357,6 @@
         viewer.on('load', refreshViewBounds);
         window.addEventListener('resize', refreshViewBounds);
 
-        // 초기 로딩 시 버튼 세팅
         window.onload = function() {
             updateNavButtons("nongdari_0");
         };
