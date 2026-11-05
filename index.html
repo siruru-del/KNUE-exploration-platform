@@ -28,7 +28,7 @@
         }
         #signpost-btn:hover { background-color: rgba(70, 70, 70, 0.9); transform: scale(1.05); }
 
-        /* 📍 보고서 다운로드 버튼 추가 */
+        /* 📍 보고서 다운로드 버튼 위치 겹치지 않게 수정 (right: 160px) */
         #download-btn {
             position: absolute; top: 20px; right: 160px; z-index: 30;
             background-color: rgba(46, 139, 87, 0.85); color: #fff; padding: 12px 18px;
@@ -68,9 +68,12 @@
         .nav-btn:hover { background-color: #fff; box-shadow: 0 12px 25px rgba(0,0,0,0.6); }
         .nav-btn.left { left: calc(50% - 91px); }
         .nav-btn.right { left: 50%; }
+        
+        /* 📍 모바일 화면 대응 버튼 위치 조정 */
         @media (max-width: 600px) {
             .nav-btn { width: 64px; height: 52px; font-size: 27px; }
             .nav-btn.left { left: calc(50% - 78px); }
+            /* 보고서 버튼이 안내판 버튼 아래에 위치하도록 70px로 이동 */
             #download-btn { top: 70px; right: 20px; }
         }
 
@@ -155,7 +158,6 @@
         var verifyBtn = document.getElementById("verifyBtn");
         var expertSection = document.getElementById("expertSection");
 
-        // 📍 데이터 저장을 위한 변수
         let currentPopupImg = "";
         let currentPopupTitle = "";
 
@@ -167,13 +169,11 @@
             modalImg.src = args.img;
             modalDesc.innerHTML = args.desc;
             
-            // 현재 열린 팝업의 정보(이미지 경로 및 제목) 기록
             currentPopupImg = args.img;
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = args.desc;
             currentPopupTitle = tempDiv.querySelector('h3') ? tempDiv.querySelector('h3').innerText : '관찰 지점';
 
-            // 📍 임시 저장소에 저장된 기록이 있는지 확인하고 불러오기
             const savedNote = localStorage.getItem("geo_note_" + currentPopupImg);
             
             if (savedNote) {
@@ -209,7 +209,6 @@
                 return;
             }
             
-            // 📍 작성 완료 시 브라우저 로컬 저장소에 가설 내용과 장소 제목 저장
             localStorage.setItem("geo_note_" + currentPopupImg, userNote.value);
             localStorage.setItem("geo_title_" + currentPopupImg, currentPopupTitle);
 
@@ -218,7 +217,6 @@
             expertSection.style.display = "flex";
         }
 
-        // 📍 학생이 작성한 관찰 노트들을 텍스트 파일로 추출하는 기능
         function downloadReport() {
             let reportContent = "🌍 충북 지질 원격답사 관찰 보고서\n=========================================\n\n";
             let hasNotes = false;
@@ -242,7 +240,6 @@
                 return;
             }
             
-            // 텍스트 파일 생성 및 다운로드 트리거
             const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -253,7 +250,6 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            // 다운로드 완료 후 기록 초기화 여부 확인
             if(confirm("보고서 다운로드가 완료되었습니다.\n새로운 답사를 위해 저장된 기록을 초기화하시겠습니까?")) {
                 const keysToRemove = [];
                 for (let i = 0; i < localStorage.length; i++) {
