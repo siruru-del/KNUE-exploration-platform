@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지질 원격답사 플랫폼</title>
+    <title>충북 지질 원격답사 플랫폼</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -101,6 +101,227 @@
 
         .close { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; z-index: 1001; }
         .close:hover { color: #aaa; }
+
+        /* ============================================================
+           모바일 상세 관찰 팝업 개선 (기존 PC 레이아웃은 유지)
+           - 상세 사진 위 / 관찰 노트 아래
+           - 하단 노트 영역만 스크롤하여 키보드 사용 시 가독성 확보
+           - 안내판 보기에서는 사진을 화면 전체에 표시
+           ============================================================ */
+        @media (max-width: 720px) {
+            #imageModal {
+                width: 100%;
+                height: 100vh; /* dvh 미지원 브라우저 대체 */
+                height: 100dvh;
+                overflow: hidden;
+                background: rgba(12, 16, 22, 0.98);
+            }
+
+            #imageModal .modal-wrapper {
+                top: 0;
+                transform: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                height: 100%;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                box-shadow: none;
+            }
+
+            /* 원래 코드가 인라인으로 width:55%를 지정하므로 모바일에서는 덮어씁니다. */
+            #imageModal .modal-content {
+                box-sizing: border-box;
+                display: block;
+                flex: 0 0 auto;
+                width: 100% !important;
+                height: 35vh;
+                height: 35dvh;
+                max-height: 42%;
+                object-fit: contain;
+                background: #07090d;
+                border-bottom: 1px solid rgba(255,255,255,0.16);
+                transition: height .15s ease;
+            }
+
+            #imageModal .modal-interactive {
+                box-sizing: border-box;
+                flex: 1 1 auto;
+                width: 100% !important;
+                height: auto;
+                min-height: 0;
+                padding: 22px 20px calc(26px + env(safe-area-inset-bottom, 0px));
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+                background: #252a32;
+            }
+
+            #imageModal .section-title {
+                font-size: 20px;
+                line-height: 1.45;
+                margin-bottom: 10px;
+                letter-spacing: -.02em;
+            }
+
+            #imageModal .section-desc {
+                font-size: 16px;
+                line-height: 1.65;
+                color: #edf1f7;
+                margin-bottom: 16px;
+                word-break: keep-all;
+            }
+
+            #imageModal #userNote {
+                display: block;
+                box-sizing: border-box;
+                width: 100%;
+                height: 150px;
+                min-height: 150px;
+                padding: 15px 16px;
+                font-size: 16px; /* iOS에서 입력 중 화면이 자동 확대되지 않도록 */
+                line-height: 1.65;
+                border-radius: 12px;
+                resize: vertical;
+            }
+
+            #imageModal #verifyBtn {
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 54px;
+                margin-top: 16px;
+                padding: 13px;
+                font-size: 16px;
+                line-height: 1.5;
+                text-align: center;
+                border-radius: 10px;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #imageModal #expertSection {
+                margin-top: 22px;
+                padding-top: 20px;
+            }
+
+            #imageModal #modalDesc {
+                font-size: 16px;
+                line-height: 1.8;
+                overflow-wrap: anywhere;
+                word-break: keep-all;
+            }
+
+            /* 검은 사진 위에도 X 버튼을 쉽게 찾을 수 있도록 터치 영역 확보 */
+            #imageModal .close {
+                position: fixed;
+                top: calc(10px + env(safe-area-inset-top, 0px));
+                right: 12px;
+                width: 46px;
+                height: 46px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                background: rgba(0,0,0,.7);
+                border: 1px solid rgba(255,255,255,.35);
+                border-radius: 50%;
+                font-size: 34px;
+                line-height: 1;
+                color: #fff;
+            }
+
+            /* 안내판은 관찰 노트가 필요 없으므로 원래의 전체 사진 보기 유지 */
+            #imageModal.signpost-mode .modal-content {
+                flex: 1 1 auto;
+                height: 100% !important;
+                max-height: none;
+                border-bottom: 0;
+            }
+
+            /* 입력에 집중하는 동안 사진을 약간 줄여 메모 영역을 넓힙니다. */
+            #imageModal.writing-mode:not(.signpost-mode) .modal-content {
+                height: 21vh;
+                height: 21dvh;
+            }
+        }
+
+        /* 모바일 가로 모드에서는 이미지와 노트를 나란히 표시하되 글자 크기는 유지 */
+        @media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+            #imageModal .modal-wrapper {
+                top: 0;
+                transform: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                height: 100%;
+                border-radius: 0;
+                flex-direction: row;
+            }
+            #imageModal .modal-content {
+                flex: 0 0 48%;
+                width: 48% !important;
+                height: 100% !important;
+                max-height: none;
+                border-bottom: 0;
+            }
+            #imageModal .modal-interactive {
+                flex: 1 1 52%;
+                width: 52% !important;
+                height: 100%;
+                padding: 20px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+            }
+            #imageModal.signpost-mode .modal-content {
+                flex: 1 1 100%;
+                width: 100% !important;
+            }
+            #imageModal .section-title { font-size: 19px; }
+            #imageModal .section-desc,
+            #imageModal #modalDesc { font-size: 16px; line-height: 1.6; }
+            #imageModal #userNote { font-size: 16px; line-height: 1.55; }
+            #imageModal #verifyBtn { min-height: 50px; font-size: 16px; }
+            #imageModal .close {
+                position: fixed;
+                top: 8px;
+                right: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                box-sizing: border-box;
+                background: rgba(0,0,0,.7);
+                border-radius: 50%;
+                font-size: 34px;
+            }
+        }
+
+        /* 낮은 사양 기기에서 텍스처가 지원되지 않을 때만 사용하는 사진 대체 화면 */
+        #mobile-image-fallback {
+            position: fixed; inset: 0; z-index: 4;
+            background: #111;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #mobile-image-fallback[hidden] { display: none !important; }
+        #mobile-image-fallback img {
+            max-width: 100%; max-height: 100%;
+            width: 100%; height: 100%; object-fit: contain;
+        }
+        #mobile-image-fallback .fallback-caption {
+            position: absolute; left: 12px; bottom: 16px; right: 12px;
+            color: #fff; background: rgba(0,0,0,.75);
+            border-radius: 10px; text-align: center;
+            padding: 10px; font-size: 13px;
+        }
+        #mobile-prepare-status {
+            position: fixed; z-index: 85; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,.88);
+            color: #fff; padding: 14px 20px; border-radius: 12px;
+            text-align: center; font-size: 14px; line-height: 1.6;
+        }
+        #mobile-prepare-status[hidden] { display: none !important; }
     </style>
 </head>
 <body>
@@ -125,6 +346,11 @@
     <button id="nav-next" class="nav-btn right" type="button" onclick="goNextScene()" title="다음 장소">▲</button>
 
     <div id="panorama"></div>
+    <div id="mobile-image-fallback" hidden>
+        <img id="mobile-fallback-img" alt="답사 사진 원본 보기">
+        <div class="fallback-caption">이 기기에서 360° 표시가 지원되지 않아 원본 사진으로 보여주고 있습니다.</div>
+    </div>
+    <div id="mobile-prepare-status" hidden role="status" aria-live="polite">모바일 화면에 맞게 사진을 준비하고 있습니다...</div>
 
     <div id="imageModal" class="modal">
         <span class="close" onclick="closeModal()">&times;</span>
@@ -159,8 +385,10 @@
         let currentPopupTitle = "";
 
         function showImagePopup(hotSpotDiv, args) {
+            modal.classList.remove("signpost-mode", "writing-mode");
             modal.style.display = "block";
             modalInteractive.style.display = "flex";
+            modalInteractive.scrollTop = 0;
             modalImg.style.width = "55%";
             
             modalImg.src = args.img;
@@ -187,6 +415,8 @@
         }
 
         function showSignpost() {
+            modal.classList.remove("writing-mode");
+            modal.classList.add("signpost-mode");
             modal.style.display = "block";
             modalInteractive.style.display = "none";
             modalImg.style.width = "100%";
@@ -198,7 +428,14 @@
             }
         }
 
-        function closeModal() { modal.style.display = "none"; }
+        function closeModal() {
+            modal.style.display = "none";
+            modal.classList.remove("signpost-mode", "writing-mode");
+        }
+
+        // 휴대폰 키보드가 열렸을 때 세부 사진 높이를 줄여 글쓰기 공간 확보
+        userNote.addEventListener("focus", () => modal.classList.add("writing-mode"));
+        userNote.addEventListener("blur", () => modal.classList.remove("writing-mode"));
 
         function verifyHypothesis() {
             if(userNote.value.trim() === "") {
@@ -354,7 +591,7 @@
             };
         }
 
-        let viewer = pannellum.viewer('panorama', {
+        const panoramaConfiguration = {
             "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true, "hotSpotDebug": true },
             "scenes": {
                 "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
@@ -394,7 +631,7 @@
                     "hotSpots": CHUNGSEOKGUL_3_MARKERS.map(makeChungseokgul3HotSpot)
                 })
             }
-        });
+        };
 
         const sceneFlow = {
             "nongdari_0": { prev: null, next: "nongdari_1" },
@@ -409,18 +646,154 @@
         };
 
         let currentSceneId = "nongdari_0";
+        let viewer = null;
+        let sceneBusy = false;
+        let fallbackActive = false;
+        const registeredScenes = new Set();
+        const preparedSceneConfigs = new Map();
+        const generatedBlobURLs = [];
 
         function updateNavButtons(sceneId) {
             currentSceneId = sceneId;
-            let flow = sceneFlow[sceneId];
+            const flow = sceneFlow[sceneId];
             document.getElementById("nav-prev").style.display = flow.prev ? "flex" : "none";
             document.getElementById("nav-next").style.display = flow.next ? "flex" : "none";
+            document.getElementById("nav-prev").disabled = sceneBusy;
+            document.getElementById("nav-next").disabled = sceneBusy;
         }
 
-        function moveToScene(sceneId) {
-            const settings = getSceneSettings(sceneId);
-            viewer.loadScene(sceneId, 0, 0, settings.hfov);
+        function isMobileDevice() {
+            return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+                (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 1024);
+        }
+
+        // Pannellum은 WebGL 텍스처로 사진을 처리하기 때문에 기기별 한계가 있습니다.
+        function getDeviceImageLimits() {
+            let maxTexture = 2048; // 확인이 불가능한 경우의 보수적인 기본값
+            const canvas = document.createElement('canvas');
+            let gl = null;
+            try {
+                gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 2048;
+            } catch (e) {
+                console.warn('WebGL 이미지 크기를 확인하지 못했습니다.', e);
+            }
+            // WebGL 컨텍스트를 한 개 더 오래 유지하지 않도록 해제
+            if (gl) {
+                const ext = gl.getExtension('WEBGL_lose_context');
+                if (ext) ext.loseContext();
+            }
+            const isMobile = isMobileDevice();
+            return {
+                hasWebGL: Boolean(gl),
+                // 원본 JPG를 유지하면서 모바일에서 너무 큰 사진만 축소
+                width: Math.max(512, Math.min(isMobile ? 4096 : 8192, maxTexture * 2 - 32)),
+                height: Math.max(256, Math.min(isMobile ? 2048 : 4096, maxTexture - 16))
+            };
+        }
+
+        const deviceImageLimits = getDeviceImageLimits();
+        console.info('현재 기기의 사진 처리 범위:', deviceImageLimits);
+
+        function imageFromURL(url) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('사진을 가져올 수 없습니다: ' + url));
+                image.src = url;
+            });
+        }
+
+        function canvasToJPEGBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                try {
+                    canvas.toBlob(blob => {
+                        blob ? resolve(blob) : reject(new Error('이미지 축소에 실패했습니다.'));
+                    }, 'image/jpeg', 0.88);
+                } catch (e) { reject(e); }
+            });
+        }
+
+        // 필요할 때만 호출합니다. 원본 GitHub 파일은 전혀 수정하지 않습니다.
+        // 가로세로 비율은 유지하므로 기존 ⓘ 좌표와 파노라마 화각도 유지됩니다.
+        async function prepareSceneForDevice(sceneId) {
+            if (preparedSceneConfigs.has(sceneId)) return preparedSceneConfigs.get(sceneId);
+
+            const original = panoramaConfiguration.scenes[sceneId];
+            if (!original) throw new Error('등록되지 않은 답사 지점: ' + sceneId);
+
+            const image = await imageFromURL(original.panorama);
+            const { width: maxW, height: maxH } = deviceImageLimits;
+            const ratio = Math.min(1, maxW / image.naturalWidth, maxH / image.naturalHeight);
+            let config = original;
+
+            if (ratio < 1) {
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.floor(image.naturalWidth * ratio));
+                canvas.height = Math.max(1, Math.floor(image.naturalHeight * ratio));
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('이미지 크기를 줄일 수 없는 기기입니다.');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                const blob = await canvasToJPEGBlob(canvas);
+                const blobURL = URL.createObjectURL(blob);
+                generatedBlobURLs.push(blobURL);
+                config = { ...original, panorama: blobURL };
+                console.info(`${sceneId}: ${image.naturalWidth}×${image.naturalHeight} → ${canvas.width}×${canvas.height}`);
+                // 캔버스 그래픽 메모리 해제
+                canvas.width = 1;
+                canvas.height = 1;
+            }
+            preparedSceneConfigs.set(sceneId, config);
+            return config;
+        }
+
+        function showFallbackPhoto(sceneId) {
+            const scene = panoramaConfiguration.scenes[sceneId];
+            if (!scene) return;
+            fallbackActive = true;
+            const fallback = document.getElementById('mobile-image-fallback');
+            const fallbackImg = document.getElementById('mobile-fallback-img');
+            fallbackImg.src = scene.panorama; // 표시만 하는 일반 JPG는 WebGL 텍스처가 필요하지 않음
+            fallback.hidden = false;
+            document.getElementById('mobile-prepare-status').hidden = true;
+            sceneBusy = false;
             updateNavButtons(sceneId);
+        }
+
+        function hideFallbackPhoto() {
+            fallbackActive = false;
+            document.getElementById('mobile-image-fallback').hidden = true;
+        }
+
+        async function moveToScene(sceneId) {
+            if (sceneBusy || !panoramaConfiguration.scenes[sceneId]) return;
+            sceneBusy = true;
+            updateNavButtons(currentSceneId);
+            document.getElementById('mobile-prepare-status').hidden = false;
+            try {
+                const config = await prepareSceneForDevice(sceneId);
+                if (!viewer) {
+                    throw new Error('360° 뷰어가 준비되지 않았습니다.');
+                }
+                if (!registeredScenes.has(sceneId)) {
+                    viewer.addScene(sceneId, config);
+                    registeredScenes.add(sceneId);
+                }
+                hideFallbackPhoto();
+                // 이동할 때마다 장면별 확대 상태 초기화
+                viewer.loadScene(sceneId, 0, 0, getSceneSettings(sceneId).hfov);
+                updateNavButtons(sceneId);
+            } catch (e) {
+                console.error(e);
+                // 360° 로드가 불가능하면 원본 이미지라도 볼 수 있도록 제공합니다.
+                showFallbackPhoto(sceneId);
+            } finally {
+                sceneBusy = false;
+                updateNavButtons(currentSceneId);
+                document.getElementById('mobile-prepare-status').hidden = true;
+            }
         }
 
         function goPrevScene() {
@@ -434,6 +807,7 @@
         }
 
         function changeSceneViaMenu(sceneId, element) {
+            document.getElementById('sidebar').classList.add('collapsed');
             moveToScene(sceneId);
             const items = document.getElementsByClassName('menu-item');
             for (let i = 0; i < items.length; i++) items[i].classList.remove('active');
@@ -441,7 +815,7 @@
         }
 
         function refreshViewBounds() {
-            if (!viewer) return;
+            if (!viewer || fallbackActive) return;
             viewer.resize();
             const s = getSceneSettings(currentSceneId);
             viewer.setHfovBounds([s.minHfov, s.maxHfov]);
@@ -450,15 +824,42 @@
             if (viewer.getHfov() > s.maxHfov) viewer.setHfov(s.maxHfov, false);
         }
 
-        viewer.on('scenechange', function(sceneId) {
-            updateNavButtons(sceneId);
-        });
-        viewer.on('load', refreshViewBounds);
-        window.addEventListener('resize', refreshViewBounds);
+        async function initializeViewer() {
+            document.getElementById('mobile-prepare-status').hidden = false;
+            try {
+                const firstScene = 'nongdari_0';
+                const config = await prepareSceneForDevice(firstScene);
+                if (!deviceImageLimits.hasWebGL || typeof pannellum === 'undefined') {
+                    showFallbackPhoto(firstScene);
+                    return;
+                }
+                viewer = pannellum.viewer('panorama', {
+                    ...panoramaConfiguration,
+                    scenes: { [firstScene]: config }
+                });
+                registeredScenes.add(firstScene);
+                viewer.on('scenechange', sceneId => updateNavButtons(sceneId));
+                viewer.on('load', () => {
+                    hideFallbackPhoto();
+                    refreshViewBounds();
+                });
+                viewer.on('error', error => {
+                    console.error('Pannellum 표시 오류:', error);
+                    // 지원되지 않는 기기에서도 아예 빈 화면이 나오지 않도록 처리
+                    showFallbackPhoto(currentSceneId);
+                });
+                window.addEventListener('resize', refreshViewBounds);
+                updateNavButtons(firstScene);
+            } catch (e) {
+                console.error('첫 사진 로딩 실패:', e);
+                showFallbackPhoto('nongdari_0');
+            } finally {
+                document.getElementById('mobile-prepare-status').hidden = true;
+            }
+        }
 
-        window.onload = function() {
-            updateNavButtons("nongdari_0");
-        };
+        updateNavButtons('nongdari_0');
+        initializeViewer();
     </script>
 </body>
 </html>
