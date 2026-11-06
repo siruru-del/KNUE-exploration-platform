@@ -1,4 +1,553 @@
-const CHUNGSEOKGUL_3_MARKERS = [
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지질 원격답사 플랫폼</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; background-color: #000; }
+        #panorama { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+
+        #menu-toggle-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 30;
+            background-color: rgba(20, 20, 20, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #menu-toggle-btn:hover { background-color: rgba(50, 50, 50, 0.9); transform: scale(1.05); }
+
+        #signpost-btn {
+            position: absolute; top: 20px; right: 20px; z-index: 30;
+            background-color: rgba(40, 40, 40, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #signpost-btn:hover { background-color: rgba(70, 70, 70, 0.9); transform: scale(1.05); }
+
+        #download-btn {
+            position: absolute; top: 70px; right: 20px; z-index: 30;
+            background-color: rgba(46, 139, 87, 0.85); color: #fff; padding: 12px 18px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; backdrop-filter: blur(5px);
+        }
+        #download-btn:hover { background-color: rgba(60, 179, 113, 0.9); transform: scale(1.05); }
+
+        #sidebar {
+            position: absolute; top: 70px; left: 20px; width: 260px;
+            background-color: rgba(25, 25, 25, 0.85); color: white; border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 30; backdrop-filter: blur(5px);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease; transform-origin: top left;
+        }
+        #sidebar.collapsed { transform: translateX(-120%); opacity: 0; pointer-events: none; }
+        #sidebar h2 { text-align: center; padding: 20px 15px 15px; margin: 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+        .menu-item { padding: 18px 20px; margin: 8px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 16px; font-weight: bold; }
+        .menu-item:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .menu-item.active { background-color: #fff; color: #000; }
+        .menu-item span { display: block; font-size: 12px; color: #aaa; margin-top: 6px; font-weight: normal; }
+        .menu-item.active span { color: #555; }
+
+        .pnlm-controls-container { top: auto !important; bottom: 20px !important; left: 20px !important; }
+
+        .nav-btn {
+            position: fixed; top: 68%; width: 72px; height: 58px; padding: 0;
+            align-items: center; justify-content: center;
+            border: 2px solid rgba(255,255,255,0.85); border-radius: 50%;
+            background-color: rgba(255,255,255,0.85); color: #222;
+            font-size: 30px; font-weight: bold; cursor: pointer; z-index: 60;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+            transform: translate(-50%, -50%) perspective(350px) rotateX(48deg);
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            display: none; 
+        }
+        .nav-btn:hover { background-color: #fff; box-shadow: 0 12px 25px rgba(0,0,0,0.6); }
+        .nav-btn.left { left: calc(50% - 91px); }
+        .nav-btn.right { left: 50%; }
+        
+        @media (max-width: 600px) {
+            .nav-btn { width: 64px; height: 52px; font-size: 27px; }
+            .nav-btn.left { left: calc(50% - 78px); }
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+        }
+        .modal-wrapper {
+            display: flex; margin: auto; width: 90%; max-width: 1200px; height: 75vh; position: relative; top: 50%; transform: translateY(-50%);
+            background-color: #2a2a2a; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden;
+        }
+        .modal-content { width: 55%; height: 100%; object-fit: contain; background: #000; transition: width 0.3s ease; }
+        
+        .modal-interactive { width: 45%; height: 100%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; overflow-y: auto; }
+        .section-title { font-size: 18px; color: #f0c040; margin: 0 0 10px 0; font-weight: bold; }
+        .section-desc { font-size: 14px; color: #ccc; margin: 0 0 15px 0; line-height: 1.4; }
+        
+        #userNote { width: 100%; height: 130px; resize: none; border-radius: 8px; padding: 15px; background: #fff; color: #222; font-family: inherit; font-size: 15px; border: none; outline: none; box-sizing: border-box; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        #userNote:disabled { background: #e0e0e0; color: #555; }
+        
+        #verifyBtn { margin-top: 15px; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        #verifyBtn:hover { background: #45a049; }
+        
+        #expertSection { margin-top: 25px; padding-top: 25px; border-top: 1px dashed #666; display: none; flex-direction: column; animation: fadeIn 0.5s ease-in-out; }
+        #modalDesc { color: #fff; line-height: 1.7; font-size: 15px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .close { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 45px; font-weight: bold; cursor: pointer; z-index: 1001; }
+        .close:hover { color: #aaa; }
+
+        @media (max-width: 720px) {
+            #imageModal {
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                overflow: hidden;
+                background: rgba(12, 16, 22, 0.98);
+            }
+
+            #imageModal .modal-wrapper {
+                top: 0;
+                transform: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                height: 100%;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                box-shadow: none;
+            }
+
+            #imageModal .modal-content {
+                box-sizing: border-box;
+                display: block;
+                flex: 0 0 auto;
+                width: 100% !important;
+                height: 35vh;
+                height: 35dvh;
+                max-height: 42%;
+                object-fit: contain;
+                background: #07090d;
+                border-bottom: 1px solid rgba(255,255,255,0.16);
+                transition: height .15s ease;
+            }
+
+            #imageModal .modal-interactive {
+                box-sizing: border-box;
+                flex: 1 1 auto;
+                width: 100% !important;
+                height: auto;
+                min-height: 0;
+                padding: 22px 20px calc(26px + env(safe-area-inset-bottom, 0px));
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+                background: #252a32;
+            }
+
+            #imageModal .section-title {
+                font-size: 20px;
+                line-height: 1.45;
+                margin-bottom: 10px;
+                letter-spacing: -.02em;
+            }
+
+            #imageModal .section-desc {
+                font-size: 16px;
+                line-height: 1.65;
+                color: #edf1f7;
+                margin-bottom: 16px;
+                word-break: keep-all;
+            }
+
+            #imageModal #userNote {
+                display: block;
+                box-sizing: border-box;
+                width: 100%;
+                height: 150px;
+                min-height: 150px;
+                padding: 15px 16px;
+                font-size: 16px; 
+                line-height: 1.65;
+                border-radius: 12px;
+                resize: vertical;
+            }
+
+            #imageModal #verifyBtn {
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 54px;
+                margin-top: 16px;
+                padding: 13px;
+                font-size: 16px;
+                line-height: 1.5;
+                text-align: center;
+                border-radius: 10px;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            #imageModal #expertSection {
+                margin-top: 22px;
+                padding-top: 20px;
+            }
+
+            #imageModal #modalDesc {
+                font-size: 16px;
+                line-height: 1.8;
+                overflow-wrap: anywhere;
+                word-break: keep-all;
+            }
+
+            #imageModal .close {
+                position: fixed;
+                top: calc(10px + env(safe-area-inset-top, 0px));
+                right: 12px;
+                width: 46px;
+                height: 46px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                background: rgba(0,0,0,.7);
+                border: 1px solid rgba(255,255,255,.35);
+                border-radius: 50%;
+                font-size: 34px;
+                line-height: 1;
+                color: #fff;
+            }
+
+            #imageModal.signpost-mode .modal-content {
+                flex: 1 1 auto;
+                height: 100% !important;
+                max-height: none;
+                border-bottom: 0;
+            }
+
+            #imageModal.writing-mode:not(.signpost-mode) .modal-content {
+                height: 21vh;
+                height: 21dvh;
+            }
+        }
+
+        @media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+            #imageModal .modal-wrapper {
+                top: 0;
+                transform: none;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+                height: 100%;
+                border-radius: 0;
+                flex-direction: row;
+            }
+            #imageModal .modal-content {
+                flex: 0 0 48%;
+                width: 48% !important;
+                height: 100% !important;
+                max-height: none;
+                border-bottom: 0;
+            }
+            #imageModal .modal-interactive {
+                flex: 1 1 52%;
+                width: 52% !important;
+                height: 100%;
+                padding: 20px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+            }
+            #imageModal.signpost-mode .modal-content {
+                flex: 1 1 100%;
+                width: 100% !important;
+            }
+            #imageModal .section-title { font-size: 19px; }
+            #imageModal .section-desc,
+            #imageModal #modalDesc { font-size: 16px; line-height: 1.6; }
+            #imageModal #userNote { font-size: 16px; line-height: 1.55; }
+            #imageModal #verifyBtn { min-height: 50px; font-size: 16px; }
+            #imageModal .close {
+                position: fixed;
+                top: 8px;
+                right: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                box-sizing: border-box;
+                background: rgba(0,0,0,.7);
+                border-radius: 50%;
+                font-size: 34px;
+            }
+        }
+
+        #mobile-image-fallback {
+            position: fixed; inset: 0; z-index: 4;
+            background: #111;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #mobile-image-fallback[hidden] { display: none !important; }
+        #mobile-image-fallback img {
+            max-width: 100%; max-height: 100%;
+            width: 100%; height: 100%; object-fit: contain;
+        }
+        #mobile-image-fallback .fallback-caption {
+            position: absolute; left: 12px; bottom: 16px; right: 12px;
+            color: #fff; background: rgba(0,0,0,.75);
+            border-radius: 10px; text-align: center;
+            padding: 10px; font-size: 13px;
+        }
+        #mobile-prepare-status {
+            position: fixed; z-index: 85; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,.88);
+            color: #fff; padding: 14px 20px; border-radius: 12px;
+            text-align: center; font-size: 14px; line-height: 1.6;
+        }
+        #mobile-prepare-status[hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-toggle-btn" onclick="toggleSidebar()">☰ 답사 지역 메뉴</div>
+    <div id="download-btn" onclick="downloadReport()">💾 보고서 다운로드</div>
+    <div id="signpost-btn" onclick="showSignpost()">🗺️ 안내판 보기</div>
+
+    <div id="sidebar" class="collapsed">
+        <h2>🗺️ 어디로 이동할까요?</h2>
+        <div class="menu-item active" onclick="changeSceneViaMenu('nongdari_0', this)">
+            1. 옥화 9경 천경대
+            <span>마우스로 드래그하여 주변 둘러보기</span>
+        </div>
+        <div class="menu-item" onclick="changeSceneViaMenu('chungseokgul_0', this)">
+            2. 옥화 9경 청석굴
+            <span>절벽의 습곡과 층리 관찰</span>
+        </div>
+    </div>
+
+    <button id="nav-prev" class="nav-btn left" type="button" onclick="goPrevScene()" title="이전 장소">◀</button>
+    <button id="nav-next" class="nav-btn right" type="button" onclick="goNextScene()" title="다음 장소">▲</button>
+
+    <div id="panorama"></div>
+    <div id="mobile-image-fallback" hidden>
+        <img id="mobile-fallback-img" alt="답사 사진 원본 보기">
+        <div class="fallback-caption">이 기기에서 360° 표시가 지원되지 않아 원본 사진으로 보여주고 있습니다.</div>
+    </div>
+    <div id="mobile-prepare-status" hidden role="status" aria-live="polite">모바일 화면에 맞게 사진을 준비하고 있습니다...</div>
+
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-wrapper">
+            <img class="modal-content" id="modalImg">
+            <div class="modal-interactive" id="modalInteractive">
+                <div id="notePadSection">
+                    <h3 class="section-title">📝 나의 관찰 노트</h3>
+                    <p class="section-desc">사진 속 노두의 특징을 관찰하고, 지질학적 형성 과정에 대한 가설을 세워보세요.</p>
+                    <textarea id="userNote" placeholder="이곳에 특징과 가설을 작성하세요..."></textarea>
+                    <button id="verifyBtn" onclick="verifyHypothesis()">✔️ 가설 검증 및 해설 보기</button>
+                </div>
+                <div id="expertSection">
+                    <h3 class="section-title">💡 전문가 해설</h3>
+                    <div id="modalDesc"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed"); }
+        var modal = document.getElementById("imageModal");
+        var modalImg = document.getElementById("modalImg");
+        var modalInteractive = document.getElementById("modalInteractive");
+        var modalDesc = document.getElementById("modalDesc");
+        var userNote = document.getElementById("userNote");
+        var verifyBtn = document.getElementById("verifyBtn");
+        var expertSection = document.getElementById("expertSection");
+
+        let currentPopupImg = "";
+        let currentPopupTitle = "";
+
+        function showImagePopup(hotSpotDiv, args) {
+            modal.classList.remove("signpost-mode", "writing-mode");
+            modal.style.display = "block";
+            modalInteractive.style.display = "flex";
+            modalInteractive.scrollTop = 0;
+            modalImg.style.width = "55%";
+            
+            modalImg.src = args.img;
+            modalDesc.innerHTML = args.desc;
+            
+            currentPopupImg = args.img;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = args.desc;
+            currentPopupTitle = tempDiv.querySelector('h3') ? tempDiv.querySelector('h3').innerText : '관찰 지점';
+
+            const savedNote = localStorage.getItem("geo_note_" + currentPopupImg);
+            
+            if (savedNote) {
+                userNote.value = savedNote;
+                userNote.disabled = true;
+                verifyBtn.style.display = "none";
+                expertSection.style.display = "flex";
+            } else {
+                userNote.value = "";
+                userNote.disabled = false;
+                verifyBtn.style.display = "flex";
+                expertSection.style.display = "none";
+            }
+        }
+
+        function showSignpost() {
+            modal.classList.remove("writing-mode");
+            modal.classList.add("signpost-mode");
+            modal.style.display = "block";
+            modalInteractive.style.display = "none";
+            modalImg.style.width = "100%";
+
+            if (currentSceneId.includes("nongdari")) {
+                modalImg.src = "nongdari/nongdari_background_4.jpg";
+            } else {
+                modalImg.src = "chungseokgul/chungseokgul_background_4.jpg";
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            modal.classList.remove("signpost-mode", "writing-mode");
+        }
+
+        userNote.addEventListener("focus", () => modal.classList.add("writing-mode"));
+        userNote.addEventListener("blur", () => modal.classList.remove("writing-mode"));
+
+        function verifyHypothesis() {
+            if(userNote.value.trim() === "") {
+                alert("노두를 관찰하고 먼저 가설이나 특징을 작성해주세요!");
+                return;
+            }
+            
+            localStorage.setItem("geo_note_" + currentPopupImg, userNote.value);
+            localStorage.setItem("geo_title_" + currentPopupTitle, currentPopupTitle);
+
+            userNote.disabled = true;
+            verifyBtn.style.display = "none";
+            expertSection.style.display = "flex";
+        }
+
+        function downloadReport() {
+            let reportContent = "🌍 충북 지질 원격답사 관찰 보고서\n=========================================\n\n";
+            let hasNotes = false;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith("geo_note_")) {
+                    hasNotes = true;
+                    let imgPath = key.replace("geo_note_", "");
+                    let note = localStorage.getItem(key);
+                    let title = localStorage.getItem("geo_title_" + imgPath) || "세부 관찰 지점";
+                    
+                    reportContent += `📍 관찰 위치: ${title}\n`;
+                    reportContent += `📝 나의 가설 및 관찰 내용:\n${note}\n`;
+                    reportContent += `-----------------------------------------\n\n`;
+                }
+            }
+            
+            if (!hasNotes) {
+                alert("아직 작성된 관찰 노트가 없습니다. 노두를 관찰하고 가설을 먼저 작성해 주세요!");
+                return;
+            }
+            
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '지질답사_관찰보고서.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            if(confirm("보고서 다운로드가 완료되었습니다.\n새로운 답사를 위해 저장된 기록을 초기화하시겠습니까?")) {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    if (key.startsWith("geo_note_") || key.startsWith("geo_title_")) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                alert("기록이 성공적으로 초기화되었습니다.");
+            }
+        }
+
+        const photoProfiles = {
+            nongdari_0:     { width: 2048, height: 786,  haov: 142, type: "wide" },
+            nongdari_1:     { width: 2048, height: 1476, haov: 82,  type: "short" },
+            nongdari_2:     { width: 2048, height: 1536, haov: 82,  type: "short" },
+            nongdari_3:     { width: 1536, height: 2048, vaov: 84,  type: "portrait" },
+            chungseokgul_0: { width: 2048, height: 432,  haov: 180, type: "wide" },
+            chungseokgul_1: { width: 1536, height: 2048, vaov: 84,  type: "portrait" },
+            chungseokgul_2: { width: 1536, height: 2048, vaov: 84,  type: "portrait" },
+            chungseokgul_3: { width: 2048, height: 578,  haov: 164, type: "wide" }
+        };
+
+        const commonSettings = {
+            type: "equirectangular",
+            friction: 0.8,
+            mouseZoom: true,
+            draggable: true,
+            backgroundColor: [0, 0, 0],
+            ignoreGPanoXMP: true,
+            avoidShowingBackground: true
+        };
+
+        const fallbackProfile = { width: 2400, height: 900, haov: 180, type: "wide" };
+
+        function getSceneSettings(sceneId) {
+            const p = photoProfiles[sceneId] || fallbackProfile;
+            const ratio = p.width / p.height;
+            const haov = p.haov || p.vaov * ratio;
+            const vaov = p.vaov || haov / ratio;
+
+            const aspect = Math.max(0.25, window.innerWidth / Math.max(1, window.innerHeight));
+            const margin = 4;
+            const verticalSafe = Math.max(5, vaov - margin * 2);
+            const maxByHeight = 2 * Math.atan(
+                Math.tan(verticalSafe * Math.PI / 360) * aspect
+            ) * 180 / Math.PI;
+
+            const LEFT_EDGE_MARGIN = 5;  
+            const RIGHT_EDGE_MARGIN = 4; 
+
+            const cap = p.type === "portrait" ? 54 : (p.type === "short" ? 78 : 80);
+            const horizontalSafe = Math.max(5, haov - LEFT_EDGE_MARGIN - RIGHT_EDGE_MARGIN);
+            const maxHfov = Math.max(5, Math.min(cap, horizontalSafe, maxByHeight));
+            const minHfov = Math.min(30, maxHfov * 0.48);
+
+            const hfov = p.type === "short"
+                ? Math.min(maxHfov, maxHfov * 0.93)
+                : p.type === "portrait"
+                    ? maxHfov * 0.92
+                    : maxHfov;
+
+            return {
+                haov, vaov, vOffset: 0,
+                hfov, minHfov, maxHfov,
+                minYaw: -haov / 2 + LEFT_EDGE_MARGIN,
+                maxYaw:  haov / 2 - RIGHT_EDGE_MARGIN,
+                minPitch: -vaov / 2 + 1.5,
+                maxPitch:  vaov / 2 - 1.5
+            };
+        }
+
+        function sceneSettings(sceneId) {
+            return Object.assign({}, commonSettings, getSceneSettings(sceneId));
+        }
+
+        const CHUNGSEOKGUL_3_MARKERS = [
             { 
                 color: "빨간색", number: 1, x: 1132, y: 320,
                 title: "창리층과 주요 지질 구조",
@@ -23,11 +572,282 @@ const CHUNGSEOKGUL_3_MARKERS = [
                 type: "info",
                 pitch: Number(pitch.toFixed(3)),
                 yaw: Number(yaw.toFixed(3)),
-                text: marker.title, // 툴팁에 고유 제목 표시
+                text: marker.title,
                 clickHandlerFunc: showImagePopup,
                 clickHandlerArgs: {
                     img: `chungseokgul/chungseokgul_${marker.number}.jpg`,
-                    desc: marker.desc // 각 마커별 고유 해설 적용
+                    desc: marker.desc
                 }
             };
         }
+
+        const panoramaConfiguration = {
+            "default": { "firstScene": "nongdari_0", "sceneFadeDuration": 1000, "autoLoad": true, "showZoomCtrl": true, "mouseZoom": true, "hotSpotDebug": true },
+            "scenes": {
+                "nongdari_0": Object.assign({}, sceneSettings("nongdari_0"), {
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background.jpg", 
+                    "hotSpots": [
+                        { 
+                            "pitch": -4.00, "yaw": -12.79, "type": "info", "text": "천경대 세부 1", 
+                            "clickHandlerFunc": showImagePopup, 
+                            "clickHandlerArgs": { 
+                                "img": "nongdari/nongdari_1.jpg", 
+                                "desc": "<h3>천경대 노두와 하식애</h3><p>천경대는 <b>옥천층군 창리층</b>에 속하며, 주로 암회색의 <b>천매암</b>과 <b>점판암</b>, <b>석회암</b>이 분포합니다. 천매암과 점판암은 기존의 퇴적암이 지하 깊은 곳에서 열과 압력을 받아 형성된 <b>변성암</b>입니다.</p><p>사진에서 볼 수 있는 깎아지른 절벽은 달천의 침식 작용으로 형성된 <b>하식애</b>입니다. 이 하식애 덕분에 지각 내부의 압축력으로 지층이 심하게 휘어진 <b>복잡한 습곡</b> 구조와 지층이 끊어진 <b>단층</b> 구조가 지표면에 선명하게 드러나게 되었습니다.</p>" 
+                            } 
+                        },
+                        { "pitch": -3.92, "yaw": -18.30, "type": "info", "text": "천경대 세부 5", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_5.jpg", "desc": "<h3>천경대 세부 5</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
+                }),
+                "nongdari_1": Object.assign({}, sceneSettings("nongdari_1"), {
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background_1.jpg", 
+                    "hotSpots": [
+                        { "pitch": 2.76, "yaw": -9.70, "type": "info", "text": "천경대 세부 2", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_2.jpg", "desc": "<h3>천경대 세부 2</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": 0.90, "yaw": 11.28, "type": "info", "text": "천경대 세부 7", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_7.jpg", "desc": "<h3>천경대 세부 7</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
+                }),
+                "nongdari_2": Object.assign({}, sceneSettings("nongdari_2"), { 
+                    "type": "equirectangular", "panorama": "nongdari/nongdari_background_2.jpg",
+                    "hotSpots": [
+                        { "pitch": -9.35, "yaw": -24.77, "type": "info", "text": "천경대 세부 3", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_3.jpg", "desc": "<h3>천경대 세부 3</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -8.97, "yaw": -6.37, "type": "info", "text": "천경대 세부 4", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_4.jpg", "desc": "<h3>천경대 세부 4</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } },
+                        { "pitch": -11.05, "yaw": 20.12, "type": "info", "text": "천경대 세부 6", "clickHandlerFunc": showImagePopup, "clickHandlerArgs": { "img": "nongdari/nongdari_6.jpg", "desc": "<h3>천경대 세부 6</h3><p>이곳에 지질학적 설명을 적어주세요.</p>" } }
+                    ]
+                }),
+                "nongdari_3": Object.assign({}, sceneSettings("nongdari_3"), { "type": "equirectangular", "panorama": "nongdari/nongdari_background_3.jpg" }),
+
+                "chungseokgul_0": Object.assign({}, sceneSettings("chungseokgul_0"), {
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background.jpg"
+                }),
+                "chungseokgul_1": Object.assign({}, sceneSettings("chungseokgul_1"), {
+                    "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_1.jpg"
+                }),
+                "chungseokgul_2": Object.assign({}, sceneSettings("chungseokgul_2"), { "type": "equirectangular", "panorama": "chungseokgul/chungseokgul_background_2.jpg" }),
+                "chungseokgul_3": Object.assign({}, sceneSettings("chungseokgul_3"), {
+                    "type": "equirectangular",
+                    "panorama": "chungseokgul/chungseokgul_background_3.jpg",
+                    "hotSpots": CHUNGSEOKGUL_3_MARKERS.map(makeChungseokgul3HotSpot)
+                })
+            }
+        };
+
+        const sceneFlow = {
+            "nongdari_0": { prev: null, next: "nongdari_1" },
+            "nongdari_1": { prev: "nongdari_0", next: "nongdari_2" },
+            "nongdari_2": { prev: "nongdari_1", next: "nongdari_3" },
+            "nongdari_3": { prev: "nongdari_2", next: null },
+            
+            "chungseokgul_0": { prev: null, next: "chungseokgul_1" },
+            "chungseokgul_1": { prev: "chungseokgul_0", next: "chungseokgul_2" },
+            "chungseokgul_2": { prev: "chungseokgul_1", next: "chungseokgul_3" },
+            "chungseokgul_3": { prev: "chungseokgul_2", next: null }
+        };
+
+        let currentSceneId = "nongdari_0";
+        let viewer = null;
+        let sceneBusy = false;
+        let fallbackActive = false;
+        const registeredScenes = new Set();
+        const preparedSceneConfigs = new Map();
+        const generatedBlobURLs = [];
+
+        function updateNavButtons(sceneId) {
+            currentSceneId = sceneId;
+            const flow = sceneFlow[sceneId];
+            document.getElementById("nav-prev").style.display = flow.prev ? "flex" : "none";
+            document.getElementById("nav-next").style.display = flow.next ? "flex" : "none";
+            document.getElementById("nav-prev").disabled = sceneBusy;
+            document.getElementById("nav-next").disabled = sceneBusy;
+        }
+
+        function isMobileDevice() {
+            return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+                (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 1024);
+        }
+
+        function getDeviceImageLimits() {
+            let maxTexture = 2048; 
+            const canvas = document.createElement('canvas');
+            let gl = null;
+            try {
+                gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 2048;
+            } catch (e) {
+                console.warn('WebGL 이미지 크기를 확인하지 못했습니다.', e);
+            }
+            if (gl) {
+                const ext = gl.getExtension('WEBGL_lose_context');
+                if (ext) ext.loseContext();
+            }
+            const isMobile = isMobileDevice();
+            return {
+                hasWebGL: Boolean(gl),
+                width: Math.max(512, Math.min(isMobile ? 4096 : 8192, maxTexture * 2 - 32)),
+                height: Math.max(256, Math.min(isMobile ? 2048 : 4096, maxTexture - 16))
+            };
+        }
+
+        const deviceImageLimits = getDeviceImageLimits();
+        console.info('현재 기기의 사진 처리 범위:', deviceImageLimits);
+
+        function imageFromURL(url) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('사진을 가져올 수 없습니다: ' + url));
+                image.src = url;
+            });
+        }
+
+        function canvasToJPEGBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                try {
+                    canvas.toBlob(blob => {
+                        blob ? resolve(blob) : reject(new Error('이미지 축소에 실패했습니다.'));
+                    }, 'image/jpeg', 0.88);
+                } catch (e) { reject(e); }
+            });
+        }
+
+        async function prepareSceneForDevice(sceneId) {
+            if (preparedSceneConfigs.has(sceneId)) return preparedSceneConfigs.get(sceneId);
+
+            const original = panoramaConfiguration.scenes[sceneId];
+            if (!original) throw new Error('등록되지 않은 답사 지점: ' + sceneId);
+
+            const image = await imageFromURL(original.panorama);
+            const { width: maxW, height: maxH } = deviceImageLimits;
+            const ratio = Math.min(1, maxW / image.naturalWidth, maxH / image.naturalHeight);
+            let config = original;
+
+            if (ratio < 1) {
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.floor(image.naturalWidth * ratio));
+                canvas.height = Math.max(1, Math.floor(image.naturalHeight * ratio));
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('이미지 크기를 줄일 수 없는 기기입니다.');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                const blob = await canvasToJPEGBlob(canvas);
+                const blobURL = URL.createObjectURL(blob);
+                generatedBlobURLs.push(blobURL);
+                config = { ...original, panorama: blobURL };
+                console.info(`${sceneId}: ${image.naturalWidth}×${image.naturalHeight} → ${canvas.width}×${canvas.height}`);
+                canvas.width = 1;
+                canvas.height = 1;
+            }
+            preparedSceneConfigs.set(sceneId, config);
+            return config;
+        }
+
+        function showFallbackPhoto(sceneId) {
+            const scene = panoramaConfiguration.scenes[sceneId];
+            if (!scene) return;
+            fallbackActive = true;
+            const fallback = document.getElementById('mobile-image-fallback');
+            const fallbackImg = document.getElementById('mobile-fallback-img');
+            fallbackImg.src = scene.panorama; 
+            fallback.hidden = false;
+            document.getElementById('mobile-prepare-status').hidden = true;
+            sceneBusy = false;
+            updateNavButtons(sceneId);
+        }
+
+        function hideFallbackPhoto() {
+            fallbackActive = false;
+            document.getElementById('mobile-image-fallback').hidden = true;
+        }
+
+        async function moveToScene(sceneId) {
+            if (sceneBusy || !panoramaConfiguration.scenes[sceneId]) return;
+            sceneBusy = true;
+            updateNavButtons(currentSceneId);
+            document.getElementById('mobile-prepare-status').hidden = false;
+            try {
+                const config = await prepareSceneForDevice(sceneId);
+                if (!viewer) {
+                    throw new Error('360° 뷰어가 준비되지 않았습니다.');
+                }
+                if (!registeredScenes.has(sceneId)) {
+                    viewer.addScene(sceneId, config);
+                    registeredScenes.add(sceneId);
+                }
+                hideFallbackPhoto();
+                viewer.loadScene(sceneId, 0, 0, getSceneSettings(sceneId).hfov);
+                updateNavButtons(sceneId);
+            } catch (e) {
+                console.error(e);
+                showFallbackPhoto(sceneId);
+            } finally {
+                sceneBusy = false;
+                updateNavButtons(currentSceneId);
+                document.getElementById('mobile-prepare-status').hidden = true;
+            }
+        }
+
+        function goPrevScene() {
+            const prevId = sceneFlow[currentSceneId].prev;
+            if (prevId) moveToScene(prevId);
+        }
+
+        function goNextScene() {
+            const nextId = sceneFlow[currentSceneId].next;
+            if (nextId) moveToScene(nextId);
+        }
+
+        function changeSceneViaMenu(sceneId, element) {
+            document.getElementById('sidebar').classList.add('collapsed');
+            moveToScene(sceneId);
+            const items = document.getElementsByClassName('menu-item');
+            for (let i = 0; i < items.length; i++) items[i].classList.remove('active');
+            element.classList.add('active');
+        }
+
+        function refreshViewBounds() {
+            if (!viewer || fallbackActive) return;
+            viewer.resize();
+            const s = getSceneSettings(currentSceneId);
+            viewer.setHfovBounds([s.minHfov, s.maxHfov]);
+            viewer.setYawBounds([s.minYaw, s.maxYaw]);
+            viewer.setPitchBounds([s.minPitch, s.maxPitch]);
+            if (viewer.getHfov() > s.maxHfov) viewer.setHfov(s.maxHfov, false);
+        }
+
+        async function initializeViewer() {
+            document.getElementById('mobile-prepare-status').hidden = false;
+            try {
+                const firstScene = 'nongdari_0';
+                const config = await prepareSceneForDevice(firstScene);
+                if (!deviceImageLimits.hasWebGL || typeof pannellum === 'undefined') {
+                    showFallbackPhoto(firstScene);
+                    return;
+                }
+                viewer = pannellum.viewer('panorama', {
+                    ...panoramaConfiguration,
+                    scenes: { [firstScene]: config }
+                });
+                registeredScenes.add(firstScene);
+                viewer.on('scenechange', sceneId => updateNavButtons(sceneId));
+                viewer.on('load', () => {
+                    hideFallbackPhoto();
+                    refreshViewBounds();
+                });
+                viewer.on('error', error => {
+                    console.error('Pannellum 표시 오류:', error);
+                    showFallbackPhoto(currentSceneId);
+                });
+                window.addEventListener('resize', refreshViewBounds);
+                updateNavButtons(firstScene);
+            } catch (e) {
+                console.error('첫 사진 로딩 실패:', e);
+                showFallbackPhoto('nongdari_0');
+            } finally {
+                document.getElementById('mobile-prepare-status').hidden = true;
+            }
+        }
+
+        updateNavButtons('nongdari_0');
+        initializeViewer();
+    </script>
+</body>
+</html>
